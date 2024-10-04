@@ -44,7 +44,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -57,6 +59,8 @@ import javax.swing.Timer;
  * @author test
  */
 public class frm_authenticator extends javax.swing.JFrame {
+    private static final String REGISTRATION_FILE = "registration.key";
+    private boolean isLoggedIn = false;
 
     private Logger logger = Logger.getLogger(frm_authenticator.class.getName());
     private final int TIME_STEP = 30;
@@ -74,7 +78,7 @@ public class frm_authenticator extends javax.swing.JFrame {
      */
     public frm_authenticator() {
         initComponents();
-
+        
 //        try {
 //            getContentPane().add(new JPanelWithBackground("test.png"));
 //        } catch (IOException e) {
@@ -117,13 +121,12 @@ public class frm_authenticator extends javax.swing.JFrame {
         txt_time = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        btn_login = new javax.swing.JButton();
         pn_image = new javax.swing.JPanel();
         lb_qrcode = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         txt_validate = new javax.swing.JTextField();
         txt_username = new javax.swing.JTextField();
-        txt_account = new javax.swing.JTextField();
         txt_secret = new javax.swing.JTextField();
         txt_token = new javax.swing.JTextField();
         btn_check = new javax.swing.JButton();
@@ -137,6 +140,8 @@ public class frm_authenticator extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         txt_oauth = new javax.swing.JTextArea();
         jLabel7 = new javax.swing.JLabel();
+        btn_Register = new javax.swing.JButton();
+        txt_password = new javax.swing.JPasswordField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Demo TOTP");
@@ -153,11 +158,11 @@ public class frm_authenticator extends javax.swing.JFrame {
         getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 30, -1, -1));
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel2.setText("Account name");
+        jLabel2.setText("Password");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 120, -1, -1));
 
         txt_time.setText("time");
-        getContentPane().add(txt_time, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 380, -1, -1));
+        getContentPane().add(txt_time, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 420, -1, -1));
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel5.setText("QRCode");
@@ -169,20 +174,20 @@ public class frm_authenticator extends javax.swing.JFrame {
                 jButton2ActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 530, 110, 30));
+        getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 570, 110, 30));
 
-        jButton4.setText("Generate");
-        jButton4.addMouseListener(new java.awt.event.MouseAdapter() {
+        btn_login.setText("login");
+        btn_login.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jButton4MouseClicked(evt);
+                btn_loginMouseClicked(evt);
             }
         });
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        btn_login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                btn_loginActionPerformed(evt);
             }
         });
-        getContentPane().add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 230, 90, 30));
+        getContentPane().add(btn_login, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 270, 90, 30));
 
         pn_image.setBorder(javax.swing.BorderFactory.createTitledBorder(""));
 
@@ -194,7 +199,7 @@ public class frm_authenticator extends javax.swing.JFrame {
             pn_imageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pn_imageLayout.createSequentialGroup()
                 .addComponent(lb_qrcode)
-                .addGap(0, 255, Short.MAX_VALUE))
+                .addGap(0, 253, Short.MAX_VALUE))
         );
         pn_imageLayout.setVerticalGroup(
             pn_imageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -214,9 +219,8 @@ public class frm_authenticator extends javax.swing.JFrame {
                 txt_validateActionPerformed(evt);
             }
         });
-        getContentPane().add(txt_validate, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 410, 130, 30));
+        getContentPane().add(txt_validate, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 450, 130, 30));
         getContentPane().add(txt_username, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 70, 200, 30));
-        getContentPane().add(txt_account, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 150, 200, 30));
 
         txt_secret.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         txt_secret.setEnabled(false);
@@ -254,7 +258,7 @@ public class frm_authenticator extends javax.swing.JFrame {
         txt_token.setText("******");
         txt_token.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         txt_token.setDoubleBuffered(true);
-        getContentPane().add(txt_token, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 410, 150, 90));
+        getContentPane().add(txt_token, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 450, 150, 90));
 
         btn_check.setText("Check");
         btn_check.addActionListener(new java.awt.event.ActionListener() {
@@ -262,7 +266,7 @@ public class frm_authenticator extends javax.swing.JFrame {
                 btn_checkActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_check, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 410, 90, 30));
+        getContentPane().add(btn_check, new org.netbeans.lib.awtextra.AbsoluteConstraints(370, 450, 90, 30));
 
         jButton6.setText("Clear");
         jButton6.addActionListener(new java.awt.event.ActionListener() {
@@ -282,22 +286,22 @@ public class frm_authenticator extends javax.swing.JFrame {
 
         jLabel12.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel12.setText("OTPAuth");
-        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 280, -1, -1));
+        getContentPane().add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 320, -1, -1));
 
         jLabel13.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel13.setText("Check Validation");
-        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 380, -1, -1));
+        getContentPane().add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 420, -1, -1));
 
         txt_messageStatus.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         txt_messageStatus.setText("valid");
-        getContentPane().add(txt_messageStatus, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 450, -1, -1));
+        getContentPane().add(txt_messageStatus, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 490, -1, -1));
 
         jLabel15.setText("*Note: reset everything in screen.");
-        getContentPane().add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 540, -1, -1));
+        getContentPane().add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 580, -1, -1));
 
         jLabel16.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel16.setText("Status:");
-        getContentPane().add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 450, -1, -1));
+        getContentPane().add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 490, -1, -1));
 
         txt_oauth.setEditable(false);
         txt_oauth.setColumns(20);
@@ -306,24 +310,72 @@ public class frm_authenticator extends javax.swing.JFrame {
         txt_oauth.setWrapStyleWord(true);
         jScrollPane1.setViewportView(txt_oauth);
 
-        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 310, 400, 60));
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 350, 400, 60));
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel7.setText("Token");
-        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 380, -1, -1));
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 420, -1, -1));
+
+        btn_Register.setText("Register");
+        btn_Register.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_RegisterActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_Register, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 270, -1, -1));
+        getContentPane().add(txt_password, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 150, 200, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+    private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
         // TODO add your handling code here:
-        SecretGenerator secretGenerator = new DefaultSecretGenerator();
-        String secret = secretGenerator.generate();
-        this.txt_secret.setText(secret);
+        String username = txt_username.getText();
+        String password = new String(txt_password.getPassword());
+        
+        if (!username.isEmpty() && !password.isEmpty()) {
+            try {
+                String registrationKeyFromFile =
+                        AES.readRegistrationKeyFromFile(REGISTRATION_FILE);
+                String registrationKey =
+                        AES.generateRegistrationKey(username, password);
+                
+                String formatToString = "";
+                try {
+                    SecretKey key = AES.generateKey(registrationKey);
+                    formatToString = Base64.getEncoder().encodeToString(key.getEncoded());
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                
+                if (registrationKeyFromFile.equals(formatToString)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Login Successful with Registration Key: " + formatToString,
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                    txt_secret.setText(formatToString);
+                    isLoggedIn = true;
+                    
+                } else {
+                    JOptionPane.showMessageDialog(this, "Invalid Username or Password.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                JOptionPane.showMessageDialog(this, "Error reading registration key: " 
+                        + e.getMessage(),"Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "Username and Password cannot be empty.",
+                    "Error", JOptionPane.ERROR_MESSAGE);       
+        }
+        
+//        SecretGenerator secretGenerator = new DefaultSecretGenerator();
+//        String secret = secretGenerator.generate();
+//        this.txt_secret.setText(secret);
 
         QrData data = new QrData.Builder()
-                .label(this.txt_account.getText())
-                .secret(secret)
+                .label(new String(this.txt_password.getPassword()))
+                .secret(this.txt_secret.getText())
                 .issuer(this.txt_username.getText())
                 .algorithm(HashingAlgorithm.SHA1) // More on this below
                 .digits(6)
@@ -333,7 +385,7 @@ public class frm_authenticator extends javax.swing.JFrame {
         String digits;
         try {
             TimeProvider timeProvider = new SystemTimeProvider();
-            digits = this.getDigitsFromHash(this.generateHash(secret, timeProvider.getTime() / TIME_STEP));
+            digits = this.getDigitsFromHash(this.generateHash(this.txt_secret.getText(), timeProvider.getTime() / TIME_STEP));
             System.out.println("frm_authenticator.jButton4ActionPerformed() = " + digits);
             this.txt_token.setText(digits);
 
@@ -410,7 +462,7 @@ public class frm_authenticator extends javax.swing.JFrame {
             Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-    }//GEN-LAST:event_jButton4ActionPerformed
+    }//GEN-LAST:event_btn_loginActionPerformed
 
     private void textChangedHandler(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_textChangedHandler
         // TODO add your handling code here:
@@ -429,7 +481,7 @@ public class frm_authenticator extends javax.swing.JFrame {
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
         final String EMPTY = "";
-        this.txt_account.setText(EMPTY);
+        this.txt_password.setText(EMPTY);
         this.txt_secret.setText(EMPTY);
         this.txt_username.setText(EMPTY);
         this.txt_validate.setText(EMPTY);
@@ -455,11 +507,11 @@ public class frm_authenticator extends javax.swing.JFrame {
         System.out.println("frm_authenticator.txt_secretHierarchyChanged()");
     }//GEN-LAST:event_txt_secretHierarchyChanged
 
-    private void jButton4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton4MouseClicked
+    private void btn_loginMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btn_loginMouseClicked
         // TODO add your handling code here:
         System.out.println("frm_authenticator.jButton4MouseClicked() = " + this.txt_secret.getText());
         this.txt_secretKeyPressed(null);
-    }//GEN-LAST:event_jButton4MouseClicked
+    }//GEN-LAST:event_btn_loginMouseClicked
 
     private void btn_checkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_checkActionPerformed
         // TODO add your handling code here:
@@ -494,8 +546,38 @@ public class frm_authenticator extends javax.swing.JFrame {
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         // TODO add your handling code here:
         final String EMPTY = "";
-        this.txt_account.setText(EMPTY);
+        this.txt_password.setText(EMPTY);
     }//GEN-LAST:event_jButton7ActionPerformed
+
+    private void btn_RegisterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_RegisterActionPerformed
+        // TODO add your handling code here:
+        String username = txt_username.getText();
+        String password = new String(txt_password.getPassword());
+        
+        if(!username.isEmpty() && !password.isEmpty()){
+            try {
+                String registrationKey = AES.generateRegistrationKey(username, password); 
+                
+                String formatToString = "";
+                try {
+                    SecretKey key = AES.generateKey(registrationKey);
+                    formatToString = Base64.getEncoder().encodeToString(key.getEncoded());
+                    System.err.println("formatotostring = " + formatToString);
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                AES.saveRegistrationKeyToFile(formatToString, REGISTRATION_FILE);
+                JOptionPane.showMessageDialog(this, "Registration Successfull. Registration Key saved",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error saving registration Key: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }else{
+            JOptionPane.showMessageDialog(this, "Username and Passowrd cannot be empty.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_btn_RegisterActionPerformed
 
     /**
      * @param args the command line arguments
@@ -571,8 +653,8 @@ public class frm_authenticator extends javax.swing.JFrame {
         }
 
         // Create a HMAC-SHA1 signing key from the shared key
-        Base32 codec = new Base32();
-        byte[] decodedKey = codec.decode(key);
+//        Base64 codec = new Base64();
+        byte[] decodedKey = Base64.getDecoder().decode(key);
         SecretKeySpec signKey = new SecretKeySpec(decodedKey, HashingAlgorithm.SHA1.getHmacAlgorithm());
         Mac mac = Mac.getInstance(HashingAlgorithm.SHA1.getHmacAlgorithm());
         mac.init(signKey);
@@ -602,9 +684,10 @@ public class frm_authenticator extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btn_Register;
     private javax.swing.JButton btn_check;
+    private javax.swing.JButton btn_login;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton6;
     private javax.swing.JButton jButton7;
     private javax.swing.JLabel jLabel1;
@@ -619,9 +702,9 @@ public class frm_authenticator extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lb_qrcode;
     private javax.swing.JPanel pn_image;
-    private javax.swing.JTextField txt_account;
     private javax.swing.JLabel txt_messageStatus;
     private javax.swing.JTextArea txt_oauth;
+    private javax.swing.JPasswordField txt_password;
     private javax.swing.JTextField txt_secret;
     private javax.swing.JLabel txt_time;
     private javax.swing.JTextField txt_token;
