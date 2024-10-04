@@ -4,6 +4,7 @@ import dev.samstevens.totp.code.CodeVerifier;
 import dev.samstevens.totp.code.DefaultCodeGenerator;
 import dev.samstevens.totp.code.DefaultCodeVerifier;
 import dev.samstevens.totp.code.HashingAlgorithm;
+import dev.samstevens.totp.exceptions.CodeGenerationException;
 import dev.samstevens.totp.exceptions.QrGenerationException;
 import dev.samstevens.totp.qr.QrDataFactory;
 import java.awt.Graphics;
@@ -24,6 +25,7 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import java.util.Base64;
+import org.apache.commons.codec.binary.Base32;
 
 import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
@@ -33,7 +35,18 @@ import dev.samstevens.totp.qr.ZxingPngQrGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 import dev.samstevens.totp.time.TimeProvider;
 import static dev.samstevens.totp.util.Utils.getDataUriForImage;
+import io.reactivex.Observable;
+import io.reactivex.disposables.Disposable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -44,8 +57,12 @@ import java.io.ByteArrayInputStream;
  * @author test
  */
 public class frm_authenticator extends javax.swing.JFrame {
-    
+
     private Logger logger = Logger.getLogger(frm_authenticator.class.getName());
+    private final int TIME_STEP = 30;
+
+    private Disposable countdownDisposable; // Biến để quản lý countdown
+    private boolean isCounting = false; // Để kiểm tra trạng thái countdown
 
 //    private String ENDPOINT = "https://www.token2.com/tools/qrencode.php?otpauth://totp/TOKEN2:user@token2.com?secret=phanngtestoccuong&issuer=Token2";
 //    String ASSETS = "2FA/resources/testDataIcons/filling.png";
@@ -65,9 +82,10 @@ public class frm_authenticator extends javax.swing.JFrame {
 //            throw new RuntimeException(e);
 //        }
         setSize(900, 640);
-        
+
         this.lb_qrcode.setText("");
         this.txt_messageStatus.setText("");
+        this.txt_time.setText("");
 
         // code Harryitc
 //        try {
@@ -96,7 +114,7 @@ public class frm_authenticator extends javax.swing.JFrame {
 
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
+        txt_time = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
@@ -118,6 +136,7 @@ public class frm_authenticator extends javax.swing.JFrame {
         jLabel16 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         txt_oauth = new javax.swing.JTextArea();
+        jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Demo TOTP");
@@ -132,9 +151,8 @@ public class frm_authenticator extends javax.swing.JFrame {
         jLabel2.setText("Account name");
         getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 120, -1, -1));
 
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jLabel4.setText("Token");
-        getContentPane().add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 380, -1, -1));
+        txt_time.setText("time");
+        getContentPane().add(txt_time, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 380, -1, -1));
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel5.setText("QRCode");
@@ -226,11 +244,11 @@ public class frm_authenticator extends javax.swing.JFrame {
         });
         getContentPane().add(txt_secret, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 230, 300, 30));
 
+        txt_token.setEditable(false);
         txt_token.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         txt_token.setText("******");
         txt_token.setDisabledTextColor(new java.awt.Color(0, 0, 0));
         txt_token.setDoubleBuffered(true);
-        txt_token.setEnabled(false);
         getContentPane().add(txt_token, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 410, 150, 90));
 
         btn_check.setText("Check");
@@ -275,6 +293,10 @@ public class frm_authenticator extends javax.swing.JFrame {
 
         getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 310, 400, 60));
 
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel7.setText("Token");
+        getContentPane().add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 380, -1, -1));
+
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
@@ -283,18 +305,49 @@ public class frm_authenticator extends javax.swing.JFrame {
         SecretGenerator secretGenerator = new DefaultSecretGenerator();
         String secret = secretGenerator.generate();
         this.txt_secret.setText(secret);
-        
+
         QrData data = new QrData.Builder()
                 .label(this.txt_account.getText())
                 .secret(secret)
                 .issuer(this.txt_username.getText())
                 .algorithm(HashingAlgorithm.SHA1) // More on this below
                 .digits(6)
-                .period(30)
+                .period(TIME_STEP)
                 .build();
-        
+
+        String digits;
+        try {
+            TimeProvider timeProvider = new SystemTimeProvider();
+            digits = this.getDigitsFromHash(this.generateHash(secret, timeProvider.getTime() / TIME_STEP));
+            System.out.println("frm_authenticator.jButton4ActionPerformed() = " + digits);
+            this.txt_token.setText(digits);
+
+//            try {
+//                CodeGenerator codeGenerator = new DefaultCodeGenerator();
+//                String code = codeGenerator.generate(secret, TIME_STEP);
+//                System.out.println("frm_authenticator.jButton4ActionPerformed().... " + code);
+////                this.txt_token.setText(code);
+//            } catch (CodeGenerationException ex) {
+//                Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+//        DefaultCodeGenerator defaultCodeGenerator = new DefaultCodeGenerator();
+//        
+//        secret.
+//        
+//        try {
+//            byte[] hash = generateHash(this.txt_secret, counter);
+//            System.out.println("frm_authenticator.jButton4ActionPerformed()" + getDigitsFromHash(hash));
+//        } catch (Exception e) {
+//            throw new CodeGenerationException("Failed to generate code. See nested exception.", e);
+//        }
         this.txt_oauth.setText(data.getUri());
-        
+
         QrGenerator generator = new ZxingPngQrGenerator();
         try {
             byte[] imageData = generator.generate(data);
@@ -318,13 +371,26 @@ public class frm_authenticator extends javax.swing.JFrame {
                 // Create ImageIcon and set it to JLabel
                 ImageIcon imageIcon = new ImageIcon(scaledImage);
 
-//                ImageIcon imageIcon = new ImageIcon(new ImageIcon(dataUri).getImage().getScaledInstance(300, 300, Image.SCALE_DEFAULT)); //100, 100 add your own size
                 this.lb_qrcode.setIcon(imageIcon);
-                
+
             } catch (IOException ex) {
                 Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
+            ActionListener taskPerformer = new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+                
+            };
+            Timer timer = new Timer(100, taskPerformer);
+            timer.setRepeats(false);
+            timer.start();
+
+//            Thread.sleep(5000);
+//            this.startCountdown();
+//            this.txt_time.setText("30");
+//            CountdownTimerTask countdownTimerTask = new CountdownTimerTask();
         } catch (QrGenerationException ex) {
             Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -357,6 +423,7 @@ public class frm_authenticator extends javax.swing.JFrame {
         this.txt_token.setText("******");
         this.txt_validate.setText(EMPTY);
         this.txt_oauth.setText(EMPTY);
+        this.txt_time.setText(EMPTY);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void txt_validateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_validateActionPerformed
@@ -383,13 +450,18 @@ public class frm_authenticator extends javax.swing.JFrame {
         // TODO add your handling code here:
 
         TimeProvider timeProvider = new SystemTimeProvider();
+
+        System.out.println("frm_authenticator.btn_checkActionPerformed() + " + timeProvider.getTime());
+
+        // get n-digits code.
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
-        CodeVerifier verifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
+        CodeVerifier codeVerifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
 
         // secret = the shared secret for the user
         // code = the code submitted by the user
-        boolean successful = verifier.isValidCode(this.txt_secret.getText(), this.txt_validate.getText());
-        
+        boolean successful = codeVerifier.isValidCode(this.txt_secret.getText(), this.txt_validate.getText());
+        System.out.println(this.txt_secret.getText() + " | " + this.txt_validate.getText() + successful);
+
         this.txt_messageStatus.setText(successful ? "VALID" : "INVALID");
     }//GEN-LAST:event_btn_checkActionPerformed
 
@@ -428,6 +500,75 @@ public class frm_authenticator extends javax.swing.JFrame {
         });
     }
 
+    // Phương thức để bắt đầu countdown
+    private void startCountdown() {
+        // Nếu countdown đang chạy, không cho phép chạy lại
+        if (isCounting) {
+            System.out.println("Countdown is already running!");
+            return;
+        }
+
+        isCounting = true; // Đặt trạng thái là đang đếm ngược
+
+        // Tạo observable để phát ra số từ 0 đến 30
+        countdownDisposable = Observable.interval(1, TimeUnit.SECONDS)
+                .take(31) // Đếm ngược từ 30 giây
+                .map(i -> 30 - i) // Chuyển số giây còn lại
+                .doOnNext(i -> SwingUtilities.invokeLater(()
+                -> this.onCountdownUpdate(i)
+        ))
+                // Cập nhật giao diện sau mỗi giây
+                .doOnComplete(() -> {
+                    SwingUtilities.invokeLater(() -> {
+                        this.onCountdownFinished();
+                    });
+                    // Khi kết thúc, gọi lại chính phương thức này để countdown lại từ đầu
+                    startCountdown(); // Tự động chạy lại
+                })
+                .subscribe();
+    }
+
+    /**
+     * Generate a HMAC-SHA1 hash of the counter number.
+     */
+    private byte[] generateHash(String key, long counter) throws InvalidKeyException, NoSuchAlgorithmException {
+        byte[] data = new byte[8];
+        long value = counter;
+        for (int i = 8; i-- > 0; value >>>= 8) {
+            data[i] = (byte) value;
+        }
+
+        // Create a HMAC-SHA1 signing key from the shared key
+        Base32 codec = new Base32();
+        byte[] decodedKey = codec.decode(key);
+        SecretKeySpec signKey = new SecretKeySpec(decodedKey, HashingAlgorithm.SHA1.getHmacAlgorithm());
+        Mac mac = Mac.getInstance(HashingAlgorithm.SHA1.getHmacAlgorithm());
+        mac.init(signKey);
+
+        // Create a hash of the counter value
+        return mac.doFinal(data);
+    }
+
+    /**
+     * Get the n-digit code for a given hash.
+     */
+    private String getDigitsFromHash(byte[] hash) {
+        int offset = hash[hash.length - 1] & 0xF;
+
+        long truncatedHash = 0;
+
+        for (int i = 0; i < 4; ++i) {
+            truncatedHash <<= 8;
+            truncatedHash |= (hash[offset + i] & 0xFF);
+        }
+
+        truncatedHash &= 0x7FFFFFFF;
+        truncatedHash %= Math.pow(10, 6);
+
+        // Left pad with 0s for a n-digit code
+        return String.format("%0" + 6 + "d", truncatedHash);
+    }
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_check;
     private javax.swing.JButton jButton2;
@@ -440,9 +581,9 @@ public class frm_authenticator extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lb_qrcode;
     private javax.swing.JPanel pn_image;
@@ -450,8 +591,23 @@ public class frm_authenticator extends javax.swing.JFrame {
     private javax.swing.JLabel txt_messageStatus;
     private javax.swing.JTextArea txt_oauth;
     private javax.swing.JTextField txt_secret;
+    private javax.swing.JLabel txt_time;
     private javax.swing.JTextField txt_token;
     private javax.swing.JTextField txt_username;
     private javax.swing.JTextField txt_validate;
     // End of variables declaration//GEN-END:variables
+
+    public void onCountdownStart() {
+        System.out.println("Countdown started!");
+    }
+
+    public void onCountdownUpdate(long timeRemaining) {
+        // Cập nhật giao diện với thời gian còn lại
+        this.txt_time.setText("Time remaining: " + timeRemaining + " seconds");
+    }
+
+    public void onCountdownFinished() {
+        System.out.println("Countdown finished!");
+//        JOptionPane.showMessageDialog(null, "Countdown has reached zero!");
+    }
 }
