@@ -85,16 +85,18 @@ public class frm_timer extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
     
-    int k = 30;
+    long k = 30 - (System.currentTimeMillis() / 1000l % 30);
     
     private void btn_startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_startActionPerformed
+        lb_timer.setText(String.valueOf(k));
         t =  new Timer(1000, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                lb_timer.setText(String.valueOf(k)); 
-                k--;
-                if (k < 0)
+                if (k < 1)
                     k = 30;
+                k--;
+                lb_timer.setText(String.valueOf(k)); 
+                
             }
         });
         t.start();
