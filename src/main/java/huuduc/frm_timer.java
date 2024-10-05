@@ -88,13 +88,19 @@ public class frm_timer extends javax.swing.JFrame {
     
     boolean status = false;
     
-    long k = 30 - (System.currentTimeMillis() / 1000L % 30);
+    
+    private String getTime() {
+        long k = 30 - (System.currentTimeMillis() / 1000L % 30);
+        return String.valueOf(k = 30 - (System.currentTimeMillis() / 1000L % 30));
+    }
+    
     
     private void btn_startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_startActionPerformed
         if (status == false )
             status = true;
         else
             status = false;
+        long k = 30 - (System.currentTimeMillis() / 1000L % 30);
         
         switch (status) {
             case true -> {
@@ -104,8 +110,7 @@ public class frm_timer extends javax.swing.JFrame {
                 t =  new Timer(1000, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        k = 30 - (System.currentTimeMillis() / 1000L % 30);
-                        lb_timer.setText(String.valueOf(k));
+                        lb_timer.setText(getTime());
                         lb_timeStamp.setText(updatetimestamp()); 
                     }
                 });
