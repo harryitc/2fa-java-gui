@@ -86,14 +86,12 @@ public class frm_timer extends javax.swing.JFrame {
     }
     
     boolean status = false;
-    
-    
+   
     private String getTime() {
         long k = 30 - (System.currentTimeMillis() / 1000L % 30);
-        return String.valueOf(k = 30 - (System.currentTimeMillis() / 1000L % 30));
+        return String.valueOf(k);
     }
-    
-    
+     
     private void btn_startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_startActionPerformed
         status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
         
