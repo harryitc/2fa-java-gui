@@ -96,23 +96,16 @@ public class frm_timer extends javax.swing.JFrame {
     
     
     private void btn_startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_startActionPerformed
-        if (status == false )
-            status = true;
-        else
-            status = false;
-        long k = 30 - (System.currentTimeMillis() / 1000L % 30);
+        status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
         
         switch (status) {
             case true -> {
                 btn_start.setText("Stop");
-                lb_timer.setText(String.valueOf(k));
+                lb_timer.setText(getTime());
                 lb_timeStamp.setText(updatetimestamp());
-                t =  new Timer(1000, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        lb_timer.setText(getTime());
-                        lb_timeStamp.setText(updatetimestamp()); 
-                    }
+                t =  new Timer(1000, (ActionEvent e) -> {
+                    lb_timer.setText(getTime());
+                    lb_timeStamp.setText(updatetimestamp());
                 });
                 t.start();
             }
