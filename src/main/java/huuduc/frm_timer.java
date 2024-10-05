@@ -5,7 +5,6 @@
 package huuduc;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.Timer;
 
 /**
@@ -17,7 +16,7 @@ public class frm_timer extends javax.swing.JFrame {
     /**
      * Creates new form frm_timer
      */
-    Timer t;
+    Timer t, timeStamp;
     
     public frm_timer() {
         initComponents();
@@ -112,8 +111,14 @@ public class frm_timer extends javax.swing.JFrame {
             case false -> {
                 lb_timer.setText("Press START!");
                 btn_start.setText("Start");
+                lb_timeStamp.setText(updatetimestamp());
+                timeStamp = new Timer(1000, (ActionEvent updatTimeStamp) -> {
+                   lb_timeStamp.setText(updatetimestamp()); 
+                });
+                timeStamp.start();
                 t.stop();
             }
+
                 
         }
         
