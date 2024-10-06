@@ -95,8 +95,10 @@ public class frm_timer extends javax.swing.JFrame {
     private void btn_startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_startActionPerformed
         status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
         
-        switch (status) {
-            case true -> {
+        String status_text  = this.status ? "true": "false";
+        
+        switch (status_text) {
+            case "true" -> {
                 btn_start.setText("Stop");
                 lb_timer.setText(getTime());
                 lb_timeStamp.setText(updatetimestamp());
@@ -106,7 +108,7 @@ public class frm_timer extends javax.swing.JFrame {
                 });
                 t.start();
             }
-            case false -> {
+            case "false" -> {
                 lb_timer.setText("Press START!");
                 btn_start.setText("Start");
                 lb_timeStamp.setText(updatetimestamp());

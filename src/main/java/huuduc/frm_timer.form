@@ -27,10 +27,8 @@
               <EmptySpace min="-2" pref="73" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="lb_timer" min="-2" pref="244" max="-2" attributes="0"/>
-                  <Group type="103" alignment="0" groupAlignment="0" attributes="0">
-                      <Component id="btn_start" min="-2" max="-2" attributes="0"/>
-                      <Component id="lb_timeStamp" min="-2" pref="107" max="-2" attributes="0"/>
-                  </Group>
+                  <Component id="btn_start" min="-2" max="-2" attributes="0"/>
+                  <Component id="lb_timeStamp" min="-2" pref="107" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="83" max="32767" attributes="0"/>
           </Group>

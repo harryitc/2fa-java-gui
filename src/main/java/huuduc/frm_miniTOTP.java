@@ -2,17 +2,15 @@ package huuduc;
 
 import java.awt.event.ActionEvent;
 import javax.swing.Timer;
-import javax.swing.text.Element;
-import javax.swing.text.PasswordView;
 
 /**
  *
  * @author huuducngo
  */
 public class frm_miniTOTP extends javax.swing.JFrame {
-    
+
     Timer t, timeStamp;
-    
+
     public frm_miniTOTP() {
         initComponents();
     }
@@ -49,10 +47,8 @@ public class frm_miniTOTP extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("miniTOTP");
-        setMaximumSize(new java.awt.Dimension(550, 550));
         setMinimumSize(new java.awt.Dimension(550, 550));
         setName("miniTOTP"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(550, 550));
         setResizable(false);
         setSize(new java.awt.Dimension(550, 550));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -65,6 +61,12 @@ public class frm_miniTOTP extends javax.swing.JFrame {
 
         lb_username.setText("Username:");
         getContentPane().add(lb_username, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 61, -1, -1));
+
+        txt_username.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txt_usernameActionPerformed(evt);
+            }
+        });
         getContentPane().add(txt_username, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 83, 200, -1));
 
         lb_password.setText("Password:");
@@ -167,9 +169,9 @@ public class frm_miniTOTP extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+
     int row = 0, col = 0;
-    
+
     private void btn_registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_registerActionPerformed
 
         String name = txt_username.getText();
@@ -183,32 +185,35 @@ public class frm_miniTOTP extends javax.swing.JFrame {
     private void txt_otpTokenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_otpTokenActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_otpTokenActionPerformed
-    
+
     private String updatetimestamp() {
         return String.valueOf(System.currentTimeMillis() / 1000L);
     }
-    
+
     boolean status = false;
-   
+
     private String getTime() {
         long k = 30 - (System.currentTimeMillis() / 1000L % 30);
         return String.valueOf(k);
     }
-    
+
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
-         status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
-        
-        switch (status) {
-            case true -> {
+        status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
+
+        String status_text = this.status ? "true" : "false";
+
+        switch (status_text) {
+            case "true": {
                 lb_timer.setText(getTime());
                 //lb_timeStamp.setText(updatetimestamp());
-                t =  new Timer(1000, (ActionEvent e) -> {
+                t = new Timer(1000, (ActionEvent e) -> {
                     lb_timer.setText(getTime());
                     //lb_timeStamp.setText(updatetimestamp());
                 });
                 t.start();
+                break;
             }
-            case false -> {
+            case "false": {
 //                lb_timer.setText("Press START!");
 //                btn_start.setText("Start");
 //                lb_timeStamp.setText(updatetimestamp());
@@ -217,9 +222,14 @@ public class frm_miniTOTP extends javax.swing.JFrame {
 //                });
 //                timeStamp.start();
                 t.stop();
+                break;
             }
         }
     }//GEN-LAST:event_btn_loginActionPerformed
+
+    private void txt_usernameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_usernameActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txt_usernameActionPerformed
 
     /**
      * @param args the command line arguments
