@@ -59,11 +59,14 @@ import javax.swing.Timer;
  * @author test
  */
 public class frm_authenticator extends javax.swing.JFrame {
+
     private static final String REGISTRATION_FILE = "registration.key";
     private boolean isLoggedIn = false;
 
     private Logger logger = Logger.getLogger(frm_authenticator.class.getName());
     private final int TIME_STEP = 30;
+
+    Timer time;
 
     private Disposable countdownDisposable; // Biến để quản lý countdown
     private boolean isCounting = false; // Để kiểm tra trạng thái countdown
@@ -78,7 +81,8 @@ public class frm_authenticator extends javax.swing.JFrame {
      */
     public frm_authenticator() {
         initComponents();
-        
+        setLocationRelativeTo(this);
+
 //        try {
 //            getContentPane().add(new JPanelWithBackground("test.png"));
 //        } catch (IOException e) {
@@ -332,14 +336,14 @@ public class frm_authenticator extends javax.swing.JFrame {
         // TODO add your handling code here:
         String username = txt_username.getText();
         String password = new String(txt_password.getPassword());
-        
+
         if (!username.isEmpty() && !password.isEmpty()) {
             try {
-                String registrationKeyFromFile =
-                        AES.readRegistrationKeyFromFile(REGISTRATION_FILE);
-                String registrationKey =
-                        AES.generateRegistrationKey(username, password);
-                
+                String registrationKeyFromFile
+                        = AES.readRegistrationKeyFromFile(REGISTRATION_FILE);
+                String registrationKey
+                        = AES.generateRegistrationKey(username, password);
+
                 String formatToString = "";
                 try {
                     SecretKey key = AES.generateKey(registrationKey);
@@ -348,31 +352,29 @@ public class frm_authenticator extends javax.swing.JFrame {
                     Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
                 }
 
-                
                 if (registrationKeyFromFile.equals(formatToString)) {
-                    JOptionPane.showMessageDialog(this,
-                            "Login Successful with Registration Key: " + formatToString,
-                            "Success", JOptionPane.INFORMATION_MESSAGE);
+//                    JOptionPane.showMessageDialog(this,
+//                            "Login Successful with Registration Key: " + formatToString,
+//                            "Success", JOptionPane.INFORMATION_MESSAGE);
                     txt_secret.setText(formatToString);
                     isLoggedIn = true;
-                    
+
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid Username or Password.",
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (IOException | ClassNotFoundException e) {
-                JOptionPane.showMessageDialog(this, "Error reading registration key: " 
-                        + e.getMessage(),"Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Error reading registration key: "
+                        + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         } else {
             JOptionPane.showMessageDialog(this, "Username and Password cannot be empty.",
-                    "Error", JOptionPane.ERROR_MESSAGE);       
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
-        
+
 //        SecretGenerator secretGenerator = new DefaultSecretGenerator();
 //        String secret = secretGenerator.generate();
 //        this.txt_secret.setText(secret);
-
         QrData data = new QrData.Builder()
                 .label(new String(this.txt_password.getPassword()))
                 .secret(this.txt_secret.getText())
@@ -388,31 +390,14 @@ public class frm_authenticator extends javax.swing.JFrame {
             digits = this.getDigitsFromHash(this.generateHash(this.txt_secret.getText(), timeProvider.getTime() / TIME_STEP));
             System.out.println("frm_authenticator.jButton4ActionPerformed() = " + digits);
             this.txt_token.setText(digits);
+            this.start(null);
 
-//            try {
-//                CodeGenerator codeGenerator = new DefaultCodeGenerator();
-//                String code = codeGenerator.generate(secret, TIME_STEP);
-//                System.out.println("frm_authenticator.jButton4ActionPerformed().... " + code);
-////                this.txt_token.setText(code);
-//            } catch (CodeGenerationException ex) {
-//                Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-//            }
         } catch (InvalidKeyException ex) {
             Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-//        DefaultCodeGenerator defaultCodeGenerator = new DefaultCodeGenerator();
-//        
-//        secret.
-//        
-//        try {
-//            byte[] hash = generateHash(this.txt_secret, counter);
-//            System.out.println("frm_authenticator.jButton4ActionPerformed()" + getDigitsFromHash(hash));
-//        } catch (Exception e) {
-//            throw new CodeGenerationException("Failed to generate code. See nested exception.", e);
-//        }
         this.txt_oauth.setText(data.getUri());
 
         QrGenerator generator = new ZxingPngQrGenerator();
@@ -444,20 +429,6 @@ public class frm_authenticator extends javax.swing.JFrame {
                 Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            ActionListener taskPerformer = new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    
-                }
-                
-            };
-            Timer timer = new Timer(100, taskPerformer);
-            timer.setRepeats(false);
-            timer.start();
-
-//            Thread.sleep(5000);
-//            this.startCountdown();
-//            this.txt_time.setText("30");
-//            CountdownTimerTask countdownTimerTask = new CountdownTimerTask();
         } catch (QrGenerationException ex) {
             Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -534,7 +505,7 @@ public class frm_authenticator extends javax.swing.JFrame {
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
         // TODO add your handling code here:
-        
+
     }//GEN-LAST:event_formKeyPressed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
@@ -553,11 +524,11 @@ public class frm_authenticator extends javax.swing.JFrame {
         // TODO add your handling code here:
         String username = txt_username.getText();
         String password = new String(txt_password.getPassword());
-        
-        if(!username.isEmpty() && !password.isEmpty()){
+
+        if (!username.isEmpty() && !password.isEmpty()) {
             try {
-                String registrationKey = AES.generateRegistrationKey(username, password); 
-                
+                String registrationKey = AES.generateRegistrationKey(username, password);
+
                 String formatToString = "";
                 try {
                     SecretKey key = AES.generateKey(registrationKey);
@@ -568,12 +539,12 @@ public class frm_authenticator extends javax.swing.JFrame {
                 }
                 AES.saveRegistrationKeyToFile(formatToString, REGISTRATION_FILE);
                 JOptionPane.showMessageDialog(this, "Registration Successfull. Registration Key saved",
-                "Success", JOptionPane.INFORMATION_MESSAGE);
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Error saving registration Key: " + e.getMessage(),
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
-        }else{
+        } else {
             JOptionPane.showMessageDialog(this, "Username and Passowrd cannot be empty.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -612,34 +583,6 @@ public class frm_authenticator extends javax.swing.JFrame {
                 new frm_authenticator().setVisible(true);
             }
         });
-    }
-
-    // Phương thức để bắt đầu countdown
-    private void startCountdown() {
-        // Nếu countdown đang chạy, không cho phép chạy lại
-        if (isCounting) {
-            System.out.println("Countdown is already running!");
-            return;
-        }
-
-        isCounting = true; // Đặt trạng thái là đang đếm ngược
-
-        // Tạo observable để phát ra số từ 0 đến 30
-        countdownDisposable = Observable.interval(1, TimeUnit.SECONDS)
-                .take(31) // Đếm ngược từ 30 giây
-                .map(i -> 30 - i) // Chuyển số giây còn lại
-                .doOnNext(i -> SwingUtilities.invokeLater(()
-                -> this.onCountdownUpdate(i)
-        ))
-                // Cập nhật giao diện sau mỗi giây
-                .doOnComplete(() -> {   
-                    SwingUtilities.invokeLater(() -> {
-                        this.onCountdownFinished();
-                    });
-                    // Khi kết thúc, gọi lại chính phương thức này để countdown lại từ đầu
-                    startCountdown(); // Tự động chạy lại
-                })
-                .subscribe();
     }
 
     /**
@@ -682,6 +625,32 @@ public class frm_authenticator extends javax.swing.JFrame {
         // Left pad with 0s for a n-digit code
         return String.format("%0" + 6 + "d", truncatedHash);
     }
+    
+    
+    long currentTime = 30 - (System.currentTimeMillis() / 1000L % 30);
+    private void start(java.awt.event.ActionEvent evt) {
+        this.txt_time.setText(String.valueOf(30 - (System.currentTimeMillis() / 1000L % 30)));
+        time = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String digits;
+                try {
+                    TimeProvider timeProvider = new SystemTimeProvider();
+                    digits = getDigitsFromHash(generateHash(txt_secret.getText(), timeProvider.getTime() / TIME_STEP));
+                    System.out.println("frm_authenticator.jButton4ActionPerformed() = " + digits);
+                    txt_token.setText(digits);
+                } catch (InvalidKeyException ex) {
+                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                currentTime = 30 - (System.currentTimeMillis() / 1000L % 30);
+                txt_time.setText(String.valueOf(currentTime));
+            }
+        });
+        time.start();
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_Register;
@@ -712,17 +681,4 @@ public class frm_authenticator extends javax.swing.JFrame {
     private javax.swing.JTextField txt_validate;
     // End of variables declaration//GEN-END:variables
 
-    public void onCountdownStart() {
-        System.out.println("Countdown started!");
-    }
-
-    public void onCountdownUpdate(long timeRemaining) {
-        // Cập nhật giao diện với thời gian còn lại
-        this.txt_time.setText("Time remaining: " + timeRemaining + " seconds");
-    }
-
-    public void onCountdownFinished() {
-        System.out.println("Countdown finished!");
-//        JOptionPane.showMessageDialog(null, "Countdown has reached zero!");
-    }
 }
