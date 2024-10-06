@@ -1,11 +1,11 @@
-package dev.samstevens.totp.code;
+package lib_totp.code;
 
-import dev.samstevens.totp.exceptions.CodeGenerationException;
-import dev.samstevens.totp.time.TimeProvider;
+import lib_totp.exceptions.CodeGenerationException;
+import lib_totp.time.TimeProvider;
 
 public class DefaultCodeVerifier implements CodeVerifier {
 
-    private final CodeGenerator codeGenerator;
+   private final CodeGenerator codeGenerator;
     private final TimeProvider timeProvider;
     private int timePeriod = 30;
     private int allowedTimePeriodDiscrepancy = 1;
@@ -25,29 +25,21 @@ public class DefaultCodeVerifier implements CodeVerifier {
 
     @Override
     public boolean isValidCode(String secret, String code) {
-        System.out.println("test");
         // Get the current number of seconds since the epoch and
         // calculate the number of time periods passed.
         long currentBucket = Math.floorDiv(timeProvider.getTime(), timePeriod);
 
         // Calculate and compare the codes for all the "valid" time periods,
         // even if we get an early match, to avoid timing attacks
-        boolean success = false;
-        for (int i = -allowedTimePeriodDiscrepancy; i <= allowedTimePeriodDiscrepancy; i++) {
-            success = checkCode(secret, currentBucket + i, code) || success;
-        }
-
-        return success;
+        return checkCode(secret, currentBucket, code);
     }
 
     /**
      * Check if a code matches for a given secret and counter.
      */
     private boolean checkCode(String secret, long counter, String code) {
-        System.out.println("===Checkcode===");
         try {
             String actualCode = codeGenerator.generate(secret, counter);
-            System.out.println("actualCode = " + actualCode + " | Code = " + code);
             return timeSafeStringComparison(actualCode, code);
         } catch (CodeGenerationException e) {
             return false;
