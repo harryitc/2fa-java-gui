@@ -1,5 +1,7 @@
 package huuduc;
 
+import java.awt.event.ActionEvent;
+import javax.swing.Timer;
 import javax.swing.text.Element;
 import javax.swing.text.PasswordView;
 
@@ -8,10 +10,9 @@ import javax.swing.text.PasswordView;
  * @author huuducngo
  */
 public class frm_miniTOTP extends javax.swing.JFrame {
-
-    /**
-     * Creates new form frm_testTOTP
-     */
+    
+    Timer t, timeStamp;
+    
     public frm_miniTOTP() {
         initComponents();
     }
@@ -48,22 +49,35 @@ public class frm_miniTOTP extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("miniTOTP");
-        setMaximumSize(new java.awt.Dimension(800, 470));
+        setMaximumSize(new java.awt.Dimension(550, 550));
+        setMinimumSize(new java.awt.Dimension(550, 550));
         setName("miniTOTP"); // NOI18N
-        setPreferredSize(new java.awt.Dimension(800, 470));
+        setPreferredSize(new java.awt.Dimension(550, 550));
         setResizable(false);
-        setSize(new java.awt.Dimension(800, 500));
+        setSize(new java.awt.Dimension(550, 550));
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         lb_title.setFont(new java.awt.Font("Helvetica Neue", 1, 36)); // NOI18N
         lb_title.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_title.setText("miniTOTP");
         lb_title.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        getContentPane().add(lb_title, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 8, -1, -1));
 
         lb_username.setText("Username:");
+        getContentPane().add(lb_username, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 61, -1, -1));
+        getContentPane().add(txt_username, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 83, 200, -1));
 
         lb_password.setText("Password:");
+        getContentPane().add(lb_password, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 111, -1, -1));
+        getContentPane().add(txt_password, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 133, 200, -1));
 
         btn_login.setText("Login");
+        btn_login.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_loginActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_login, new org.netbeans.lib.awtextra.AbsoluteConstraints(148, 161, -1, -1));
 
         btn_register.setText("Register");
         btn_register.addActionListener(new java.awt.event.ActionListener() {
@@ -71,15 +85,20 @@ public class frm_miniTOTP extends javax.swing.JFrame {
                 btn_registerActionPerformed(evt);
             }
         });
+        getContentPane().add(btn_register, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 161, -1, -1));
 
         lb_qrcode.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_qrcode.setText("QRCode Is HERE!!!");
         lb_qrcode.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         lb_qrcode.setPreferredSize(new java.awt.Dimension(200, 200));
+        getContentPane().add(lb_qrcode, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 30, -1, -1));
+        getContentPane().add(txt_checktoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 208, 124, -1));
 
         lb_checkOTP.setText("Check Token TOTP");
+        getContentPane().add(lb_checkOTP, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 190, -1, -1));
 
         lb_tokenStatus.setText("Token Status");
+        getContentPane().add(lb_tokenStatus, new org.netbeans.lib.awtextra.AbsoluteConstraints(125, 190, -1, -1));
 
         txt_otpToken.setFont(new java.awt.Font("Helvetica Neue", 1, 48)); // NOI18N
         txt_otpToken.setHorizontalAlignment(javax.swing.JTextField.CENTER);
@@ -89,10 +108,13 @@ public class frm_miniTOTP extends javax.swing.JFrame {
                 txt_otpTokenActionPerformed(evt);
             }
         });
+        getContentPane().add(txt_otpToken, new org.netbeans.lib.awtextra.AbsoluteConstraints(348, 271, -1, 78));
 
         btn_checktoken.setText("Check");
+        getContentPane().add(btn_checktoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(150, 208, -1, -1));
 
         lb_OTPtoken.setText("OTP Token");
+        getContentPane().add(lb_OTPtoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 250, -1, -1));
 
         tb_accountpool.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -121,110 +143,27 @@ public class frm_miniTOTP extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tb_accountpool);
         if (tb_accountpool.getColumnModel().getColumnCount() > 0) {
-            tb_accountpool.getColumnModel().getColumn(0).setMinWidth(200);
-            tb_accountpool.getColumnModel().getColumn(0).setPreferredWidth(200);
-            tb_accountpool.getColumnModel().getColumn(0).setMaxWidth(500);
-            tb_accountpool.getColumnModel().getColumn(1).setMinWidth(200);
-            tb_accountpool.getColumnModel().getColumn(1).setPreferredWidth(200);
-            tb_accountpool.getColumnModel().getColumn(1).setMaxWidth(500);
+            tb_accountpool.getColumnModel().getColumn(0).setMinWidth(100);
+            tb_accountpool.getColumnModel().getColumn(0).setPreferredWidth(100);
+            tb_accountpool.getColumnModel().getColumn(0).setMaxWidth(200);
+            tb_accountpool.getColumnModel().getColumn(1).setMinWidth(100);
+            tb_accountpool.getColumnModel().getColumn(1).setPreferredWidth(100);
+            tb_accountpool.getColumnModel().getColumn(1).setMaxWidth(200);
         }
+
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 355, 505, 120));
 
         txt_otpauth.setColumns(20);
         txt_otpauth.setRows(5);
         jScrollPane2.setViewportView(txt_otpauth);
 
+        getContentPane().add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 271, 300, 78));
+
         lb_otpauth.setText("OTPAuth");
+        getContentPane().add(lb_otpauth, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 250, -1, -1));
 
         lb_timer.setText("TImer");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(lb_title)
-                            .addComponent(lb_username)
-                            .addComponent(txt_username, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lb_password)
-                            .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btn_register)
-                                .addGap(50, 50, 50)
-                                .addComponent(btn_login))
-                            .addComponent(lb_checkOTP)
-                            .addComponent(txt_checktoken, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btn_checktoken)
-                                .addGap(6, 6, 6)
-                                .addComponent(lb_tokenStatus)))
-                        .addGap(30, 30, 30)
-                        .addComponent(lb_qrcode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(100, 100, 100)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(txt_otpToken, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(lb_otpauth)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(lb_timer)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(lb_OTPtoken))))
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 759, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(8, 8, 8)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(lb_title)
-                        .addGap(6, 6, 6)
-                        .addComponent(lb_username)
-                        .addGap(6, 6, 6)
-                        .addComponent(txt_username, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(6, 6, 6)
-                        .addComponent(lb_password)
-                        .addGap(6, 6, 6)
-                        .addComponent(txt_password, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(6, 6, 6)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn_register)
-                            .addComponent(btn_login))
-                        .addGap(18, 18, 18)
-                        .addComponent(lb_checkOTP)
-                        .addGap(6, 6, 6)
-                        .addComponent(txt_checktoken, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(6, 6, 6)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn_checktoken)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(3, 3, 3)
-                                .addComponent(lb_tokenStatus))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(42, 42, 42)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(lb_OTPtoken)
-                                    .addComponent(lb_timer))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txt_otpToken, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lb_otpauth)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(lb_qrcode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(53, Short.MAX_VALUE))
-        );
+        getContentPane().add(lb_timer, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 250, -1, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -244,6 +183,43 @@ public class frm_miniTOTP extends javax.swing.JFrame {
     private void txt_otpTokenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txt_otpTokenActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_txt_otpTokenActionPerformed
+    
+    private String updatetimestamp() {
+        return String.valueOf(System.currentTimeMillis() / 1000L);
+    }
+    
+    boolean status = false;
+   
+    private String getTime() {
+        long k = 30 - (System.currentTimeMillis() / 1000L % 30);
+        return String.valueOf(k);
+    }
+    
+    private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
+         status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
+        
+        switch (status) {
+            case true -> {
+                lb_timer.setText(getTime());
+                //lb_timeStamp.setText(updatetimestamp());
+                t =  new Timer(1000, (ActionEvent e) -> {
+                    lb_timer.setText(getTime());
+                    //lb_timeStamp.setText(updatetimestamp());
+                });
+                t.start();
+            }
+            case false -> {
+//                lb_timer.setText("Press START!");
+//                btn_start.setText("Start");
+//                lb_timeStamp.setText(updatetimestamp());
+//                timeStamp = new Timer(1000, (ActionEvent updatTimeStamp) -> {
+//                   lb_timeStamp.setText(updatetimestamp()); 
+//                });
+//                timeStamp.start();
+                t.stop();
+            }
+        }
+    }//GEN-LAST:event_btn_loginActionPerformed
 
     /**
      * @param args the command line arguments
