@@ -5,7 +5,6 @@
 package huuduc;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.Timer;
 
 /**
@@ -17,11 +16,13 @@ public class frm_timer extends javax.swing.JFrame {
     /**
      * Creates new form frm_timer
      */
-    Timer t;
+    Timer t, timeStamp;
     
     public frm_timer() {
         initComponents();
         setLocationRelativeTo(this);
+        lb_timer.setText("Press START!");
+        btn_start.setText("Start");
     }
 
     /**
@@ -35,7 +36,7 @@ public class frm_timer extends javax.swing.JFrame {
 
         lb_timer = new javax.swing.JLabel();
         btn_start = new javax.swing.JButton();
-        btn_stop = new javax.swing.JButton();
+        lb_timeStamp = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -49,12 +50,8 @@ public class frm_timer extends javax.swing.JFrame {
             }
         });
 
-        btn_stop.setText("Stop");
-        btn_stop.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn_stopActionPerformed(evt);
-            }
-        });
+        lb_timeStamp.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lb_timeStamp.setText("Time Stamp");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -62,12 +59,11 @@ public class frm_timer extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(73, 73, 73)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lb_timer, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(btn_start)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btn_stop))
-                    .addComponent(lb_timer, javax.swing.GroupLayout.PREFERRED_SIZE, 244, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(lb_timeStamp, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(83, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -76,37 +72,55 @@ public class frm_timer extends javax.swing.JFrame {
                 .addGap(51, 51, 51)
                 .addComponent(lb_timer, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btn_start)
-                    .addComponent(btn_stop))
-                .addContainerGap(143, Short.MAX_VALUE))
+                .addComponent(btn_start)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lb_timeStamp, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(110, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
     
-    long k = 30 - (System.currentTimeMillis() / 1000l % 30);
+    private String updatetimestamp() {
+        return String.valueOf(System.currentTimeMillis() / 1000L);
+    }
     
+    boolean status = false;
+   
+    private String getTime() {
+        long k = 30 - (System.currentTimeMillis() / 1000L % 30);
+        return String.valueOf(k);
+    }
+     
     private void btn_startActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_startActionPerformed
-        lb_timer.setText(String.valueOf(k));
-        t =  new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (k < 1)
-                    k = 30;
-                k--;
-                lb_timer.setText(String.valueOf(k)); 
-                
+        status = status == false; // máy tự viết lại hàm if này, thấy nó lạ quá :V 
+        
+        switch (status) {
+            case true -> {
+                btn_start.setText("Stop");
+                lb_timer.setText(getTime());
+                lb_timeStamp.setText(updatetimestamp());
+                t =  new Timer(1000, (ActionEvent e) -> {
+                    lb_timer.setText(getTime());
+                    lb_timeStamp.setText(updatetimestamp());
+                });
+                t.start();
             }
-        });
-        t.start();
-    }//GEN-LAST:event_btn_startActionPerformed
+            case false -> {
+                lb_timer.setText("Press START!");
+                btn_start.setText("Start");
+                lb_timeStamp.setText(updatetimestamp());
+                timeStamp = new Timer(1000, (ActionEvent updatTimeStamp) -> {
+                   lb_timeStamp.setText(updatetimestamp()); 
+                });
+                timeStamp.start();
+                t.stop();
+            }
 
-    private void btn_stopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_stopActionPerformed
-        t.stop();
-        k = 30;
-        lb_timer.setText(String.valueOf(k));
-    }//GEN-LAST:event_btn_stopActionPerformed
+                
+        }
+        
+    }//GEN-LAST:event_btn_startActionPerformed
 
     /**
      * @param args the command line arguments
@@ -145,7 +159,7 @@ public class frm_timer extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_start;
-    private javax.swing.JButton btn_stop;
+    private javax.swing.JLabel lb_timeStamp;
     private javax.swing.JLabel lb_timer;
     // End of variables declaration//GEN-END:variables
 }
