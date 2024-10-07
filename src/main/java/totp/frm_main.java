@@ -62,6 +62,7 @@ public class frm_main extends javax.swing.JFrame {
         this.btn_login.setEnabled(false);
         this.btn_copy.setEnabled(false);
         this.lb_tokenStatus.setText("");
+        
     }
 
     /**
@@ -197,9 +198,16 @@ public class frm_main extends javax.swing.JFrame {
             Class[] types = new Class [] {
                 java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
+            boolean[] canEdit = new boolean [] {
+                false, false, false
+            };
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
             }
         });
         jScrollPane1.setViewportView(tb_accountpool);
@@ -224,7 +232,7 @@ public class frm_main extends javax.swing.JFrame {
         lb_otpauth.setText("OTPAuth");
         getContentPane().add(lb_otpauth, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 250, -1, -1));
 
-        lb_timer.setText("TImer");
+        lb_timer.setText("Timer");
         getContentPane().add(lb_timer, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 250, -1, -1));
 
         btn_checktoken.setText("Check");
@@ -242,8 +250,8 @@ public class frm_main extends javax.swing.JFrame {
     private final int MAX_ROW = 10;
     private final int MAX_COLUMN = 3;
 
-    ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
-    ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
+    ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("src/assets/icons/valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
+    ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("src/assets/icons/invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
 
     private void btn_registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_registerActionPerformed
 
@@ -254,27 +262,40 @@ public class frm_main extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Username cannot be empty.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
-        } else if (!username.isEmpty() && !password.isEmpty()) {
-            SecretGenerator secretGenerator = new DefaultSecretGenerator();
-            tb_accountpool.setValueAt(username, row, col++);
-            tb_accountpool.setValueAt(password, row, col++);
-            tb_accountpool.setValueAt(secretGenerator.generate(), row, col++);
-
-            this.btn_login.setEnabled(true);
-
-            JOptionPane.showMessageDialog(this, "Register successfully!",
-                    "Success", JOptionPane.OK_OPTION);
-
-            row++;
-            col = 0;
-
-            this.lb_tokenStatus.setIcon(null);
-
-        } else {
-            JOptionPane.showMessageDialog(this, "Username or Passowrd isn't correct. Please check again!",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-            this.btn_login.setEnabled(false);
         }
+
+        if (this.isExistedUsernameInTable(username)) {
+            JOptionPane.showMessageDialog(this, "Username is existed in table.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Password cannot be empty.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        SecretGenerator secretGenerator = new DefaultSecretGenerator();
+        tb_accountpool.setValueAt(username, row, col++);
+        tb_accountpool.setValueAt(password, row, col++);
+        tb_accountpool.setValueAt(secretGenerator.generate(), row, col++);
+
+        this.btn_login.setEnabled(true);
+
+        JOptionPane.showMessageDialog(this, "Register successfully!",
+                "Success", JOptionPane.NO_OPTION);
+
+        row++;
+        col = 0;
+
+        this.lb_tokenStatus.setIcon(null);
+
+//                else {
+//            JOptionPane.showMessageDialog(this, "Username or Passowrd isn't correct. Please check again!",
+//                    "Error", JOptionPane.ERROR_MESSAGE);
+//            this.btn_login.setEnabled(false);
+//        }
 
     }//GEN-LAST:event_btn_registerActionPerformed
 
@@ -515,6 +536,17 @@ public class frm_main extends javax.swing.JFrame {
         } catch (QrGenerationException ex) {
             Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private boolean isExistedUsernameInTable(String username) {
+        
+        for (int i = 0; i < Math.min(MAX_ROW, this.row); i++) {
+            if (username.equals(this.tb_accountpool.getValueAt(i, 0))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void myLogic() {
