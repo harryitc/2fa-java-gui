@@ -62,7 +62,7 @@ public class frm_main extends javax.swing.JFrame {
         this.btn_login.setEnabled(false);
         this.btn_copy.setEnabled(false);
         this.lb_tokenStatus.setText("");
-        
+
     }
 
     /**
@@ -180,26 +180,26 @@ public class frm_main extends javax.swing.JFrame {
 
         tb_accountpool.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Username", "Password", "Secret Key"
+                "Username", "Password", "Secret Key", "Token", "Timer"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean [] {
-                false, false, false
+                false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -280,7 +280,7 @@ public class frm_main extends javax.swing.JFrame {
         tb_accountpool.setValueAt(username, row, col++);
         tb_accountpool.setValueAt(password, row, col++);
         tb_accountpool.setValueAt(secretGenerator.generate(), row, col++);
-
+        tb_accountpool.setValueAt(this.getToken(indexUserLogined), row, col++);
         this.btn_login.setEnabled(true);
 
         JOptionPane.showMessageDialog(this, "Register successfully!",
@@ -321,7 +321,8 @@ public class frm_main extends javax.swing.JFrame {
                 this.indexUserLogined = i;
                 this.btn_copy.setEnabled(true);
                 this.generateQR();
-
+                this.txt_otpToken.setText(this.getToken(i));
+                this.start(null);
                 JOptionPane.showMessageDialog(this, "Logined success.",
                         "Success", JOptionPane.DEFAULT_OPTION);
                 return;
@@ -435,6 +436,8 @@ public class frm_main extends javax.swing.JFrame {
                     lb_timer.setText(String.valueOf(currentTime) + "s");
                     digits = getDigitsFromHash(generateHash(tb_accountpool.getValueAt(indexUserLogined, 2).toString(), timeProvider1.getTime() / TIME_STEP));
                     txt_otpToken.setText(digits);
+                    updateTimerInTable();
+                    updateTokenInTable();
                 } catch (InvalidKeyException ex) {
                     Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (NoSuchAlgorithmException ex) {
@@ -480,6 +483,21 @@ public class frm_main extends javax.swing.JFrame {
         return String.format("%0" + DIGIT_TOKEN + "d", truncatedHash);
     }
 
+    private String getToken(int indexUserLogined) {
+        String digits = "";
+        try {
+            TimeProvider timeProvider = new SystemTimeProvider();
+            digits = this.getDigitsFromHash(this.generateHash(this.tb_accountpool.getValueAt(indexUserLogined, 2).toString(), timeProvider.getTime() / TIME_STEP));
+            this.start(null);
+
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return digits;
+    }
+
     private void generateQR() {
         QrData data = new QrData.Builder()
                 .label(new String(this.txt_password.getPassword()))
@@ -489,19 +507,6 @@ public class frm_main extends javax.swing.JFrame {
                 .digits(DIGIT_TOKEN)
                 .period(TIME_STEP)
                 .build();
-
-        String digits;
-        try {
-            TimeProvider timeProvider = new SystemTimeProvider();
-            digits = this.getDigitsFromHash(this.generateHash(this.tb_accountpool.getValueAt(indexUserLogined, 2).toString(), timeProvider.getTime() / TIME_STEP));
-            this.txt_otpToken.setText(digits);
-            this.start(null);
-
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
         this.txt_otpauth.setText(data.getUri());
 
@@ -537,9 +542,26 @@ public class frm_main extends javax.swing.JFrame {
             Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    //update timer in table
+
+    private void updateTimerInTable() {
+        TimeProvider timeProvider = new SystemTimeProvider();
+        for (int i = 0; i < Math.min(MAX_ROW, this.row); i++) {
+            long currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
+            this.tb_accountpool.setValueAt(String.valueOf(currentTime) + "s", i, 4);
+        }
+    }
+//update token in table
+
+    private void updateTokenInTable() {
+
+        for (int i = 0; i < Math.min(MAX_ROW, this.row); i++) {
+            this.tb_accountpool.setValueAt(this.getToken(i), i, 3);
+        }
+    }
 
     private boolean isExistedUsernameInTable(String username) {
-        
+
         for (int i = 0; i < Math.min(MAX_ROW, this.row); i++) {
             if (username.equals(this.tb_accountpool.getValueAt(i, 0))) {
                 return true;
@@ -549,63 +571,6 @@ public class frm_main extends javax.swing.JFrame {
         return false;
     }
 
-    private void myLogic() {
-//        QrData data = new QrData.Builder()
-//                .label(new String(this.txt_password.getPassword()))
-//                .secret(this.txt.getText())
-//                .issuer(this.txt_username.getText())
-//                .algorithm(HashingAlgorithm.SHA1) // More on this below
-//                .digits(6)
-//                .period(TIME_STEP)
-//                .build();
-//
-//        String digits;
-//        try {
-//            TimeProvider timeProvider = new SystemTimeProvider();
-//            digits = this.getDigitsFromHash(this.generateHash(this.txt_secret.getText(), timeProvider.getTime() / TIME_STEP));
-//            this.txt_otpToken.setText(digits);
-//            this.start(null);
-//
-//        } catch (InvalidKeyException ex) {
-//            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
-//        } catch (NoSuchAlgorithmException ex) {
-//            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//
-//        this.txt_otpauth.setText(data.getUri());
-//
-//        QrGenerator generator = new ZxingPngQrGenerator();
-//        try {
-//            byte[] imageData = generator.generate(data);
-//            String mimeType = generator.getImageMimeType();
-//            String dataUri = Utils.getDataUriForImage(imageData, mimeType);
-//
-//            // Remove the prefix if the base64 string has "data:image/png;base64," or similar
-//            String base64Image = dataUri.split(",")[1];
-//            // Decode base64 string into byte array
-//            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-//
-//            // Convert byte array into BufferedImage
-//            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-//            BufferedImage image;
-//            try {
-//                image = ImageIO.read(bis);
-//                // Scale the image if necessary
-//                Image scaledImage = image.getScaledInstance(300, 300, Image.SCALE_DEFAULT);
-//
-//                // Create ImageIcon and set it to JLabel
-//                ImageIcon imageIcon = new ImageIcon(scaledImage);
-//
-//                this.lb_qrcode.setIcon(imageIcon);
-//
-//            } catch (IOException ex) {
-//                Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
-//            }
-//
-//        } catch (QrGenerationException ex) {
-//            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_checktoken;
