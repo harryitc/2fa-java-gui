@@ -224,6 +224,8 @@ public class frm_main extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        tb_accountpool.setCellSelectionEnabled(true);
+        tb_accountpool.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         jScrollPane1.setViewportView(tb_accountpool);
         if (tb_accountpool.getColumnModel().getColumnCount() > 0) {
             tb_accountpool.getColumnModel().getColumn(0).setMinWidth(50);
@@ -341,7 +343,7 @@ public class frm_main extends javax.swing.JFrame {
         rowData[col++] = secret;
 
         rowData[col++] = this.getToken(secret);
-        this.startTime(null, false);
+        this.startTime(null);
 
         this.tableModel.addRow(rowData);
 
@@ -381,8 +383,9 @@ public class frm_main extends javax.swing.JFrame {
                 this.indexUserLogined = i;
                 this.btn_copy.setEnabled(true);
                 this.generateQR();
+                
                 this.txt_otpToken.setText(this.getToken(this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString()));
-                this.startTime(null, true);
+                this.startTime(null);
                 JOptionPane.showMessageDialog(this, "Logined success.",
                         "Success", JOptionPane.DEFAULT_OPTION);
                 return;
@@ -469,7 +472,7 @@ public class frm_main extends javax.swing.JFrame {
                 }
 
                 rowData[FieldTable.TOKEN] = this.getToken((String) rowData[FieldTable.SECRET_KEY]);
-                this.startTime(null, false);
+                this.startTime(null);
                 // Thêm hàng vào model
                 this.tableModel.addRow(rowData);
 
@@ -641,11 +644,11 @@ public class frm_main extends javax.swing.JFrame {
 
     long currentTime = TIME_STEP - (new SystemTimeProvider().getTime() % TIME_STEP);
 
-    private void startTime(java.awt.event.ActionEvent evt, boolean isDisplayTime) {
+    private void startTime(java.awt.event.ActionEvent evt) {
         TimeProvider timeProvider = new SystemTimeProvider();
 
         // Hiện thời gian hay không?
-        if (isDisplayTime && this.isUserLogined) {
+        if (this.isUserLogined) {
             this.lb_timer.setText(String.valueOf(TIME_STEP - (timeProvider.getTime() % TIME_STEP)) + "s");
         }
         time = new Timer(1000, new ActionListener() {
@@ -657,7 +660,7 @@ public class frm_main extends javax.swing.JFrame {
                     currentTime = TIME_STEP - (timeProvider1.getTime() % TIME_STEP);
                     digits = getDigitsFromHash(generateHash(tb_accountpool.getValueAt(indexUserLogined, 2).toString(), timeProvider1.getTime() / TIME_STEP));
                     // Hiện thời gian hay không?
-                    if (isDisplayTime && isUserLogined) {
+                    if (isUserLogined) {
                         lb_timer.setText(String.valueOf(currentTime) + "s");
                         txt_otpToken.setText(digits);
                     } else {
