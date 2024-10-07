@@ -1,7 +1,7 @@
 package lib_totp.time;
 
-import dev.samstevens.totp.exceptions.TimeProviderException;
 import java.time.Instant;
+import lib_totp.exceptions.TimeProviderException;
 
 public class SystemTimeProvider implements TimeProvider {
     @Override
