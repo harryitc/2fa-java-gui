@@ -15,6 +15,7 @@ public class FieldTable {
     public final static int SECRET_KEY = 2;
     public final static int TOKEN = 3;
     public final static int TIMER = 4;
+    public final static int CHECKBOX = 5;
     
     public static void main(String[] args) {
     }
