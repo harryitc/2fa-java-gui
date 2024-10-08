@@ -72,7 +72,7 @@ public class frm_main extends javax.swing.JFrame {
     private int indexUserLogined;
 
     private boolean isUserLogined = false;
-    
+
     private final ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("src/assets/icons/valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("src/assets/icons/invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
 
@@ -126,7 +126,6 @@ public class frm_main extends javax.swing.JFrame {
         txt_directory = new javax.swing.JTextArea();
         btn_checkall = new javax.swing.JButton();
         btn_delete = new javax.swing.JButton();
-        btn_clean = new javax.swing.JButton();
 
         jButton1.setText("jButton1");
 
@@ -303,6 +302,11 @@ public class frm_main extends javax.swing.JFrame {
         getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 480, 440, 60));
 
         btn_checkall.setText("v");
+        btn_checkall.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_checkallActionPerformed(evt);
+            }
+        });
         getContentPane().add(btn_checkall, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 360, -1, -1));
 
         btn_delete.setText("X");
@@ -313,13 +317,9 @@ public class frm_main extends javax.swing.JFrame {
         });
         getContentPane().add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 389, -1, -1));
 
-        btn_clean.setText("C");
-        getContentPane().add(btn_clean, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 418, -1, -1));
-
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    
 
     private void btn_registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_registerActionPerformed
 
@@ -360,7 +360,7 @@ public class frm_main extends javax.swing.JFrame {
         rowData[col++] = password;
         String secret = secretGenerator.generate();
         rowData[col++] = secret;
-        
+
         rowData[FieldTable.CHECKBOX] = false;
 
         rowData[col++] = this.getToken(secret);
@@ -391,7 +391,7 @@ public class frm_main extends javax.swing.JFrame {
                 this.indexUserLogined = i;
                 this.btn_copy.setEnabled(true);
                 this.generateQR();
-                
+
                 this.txt_otpToken.setText(this.getToken(this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString()));
                 this.startTime(null);
                 JOptionPane.showMessageDialog(this, "Logined success.",
@@ -416,7 +416,6 @@ public class frm_main extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_copyActionPerformed
 
     private void btn_checktokenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_checktokenActionPerformed
-
 
         if (!this.isUserLogined) {
             JOptionPane.showMessageDialog(this, "You must be login before check token!",
@@ -443,7 +442,7 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_openFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_openFileActionPerformed
 
-/*
+        /*
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Open FIle containing Ciphertext");
         int userSelection = fileChooser.showOpenDialog(this);
@@ -462,7 +461,7 @@ public class frm_main extends javax.swing.JFrame {
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-*/
+         */
         JFileChooser fileChooser = new JFileChooser(this.DEFAULT_PATH_FILE_NAME);
         fileChooser.setDialogTitle("Open FIle containing Ciphertext");
         int userSelection = fileChooser.showOpenDialog(this);
@@ -480,7 +479,7 @@ public class frm_main extends javax.swing.JFrame {
                 }
 
                 // Lấy model hiện tại của JTable
-    //            String[] columnNames = this.tableModel.get;
+                //            String[] columnNames = this.tableModel.get;
                 // Duyệt qua từng hàng (JSONObject) trong JSONArray
                 int indexSameUsername = 0;
 
@@ -500,6 +499,7 @@ public class frm_main extends javax.swing.JFrame {
                     }
 
                     rowData[FieldTable.TOKEN] = this.getToken((String) rowData[FieldTable.SECRET_KEY]);
+                    rowData[FieldTable.CHECKBOX] = false;
                     this.startTime(null);
                     // Thêm hàng vào model
                     this.tableModel.addRow(rowData);
@@ -511,14 +511,14 @@ public class frm_main extends javax.swing.JFrame {
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                 }
 
-            // Thiết lập model mới cho JTable
+                // Thiết lập model mới cho JTable
 //            this.tb_accountpool.set(tableModel);
 //            this.updateTableWithNewData(this.tb_accountpool, tableModel);
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        }
-        
+
     }//GEN-LAST:event_btn_openFileActionPerformed
 
     private void btn_saveFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_saveFileActionPerformed
@@ -534,7 +534,6 @@ public class frm_main extends javax.swing.JFrame {
 //        } catch (IOException e) {
 //            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, e);
 //        }
-
         if (this.tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "No data to save!",
                     "Info", JOptionPane.OK_OPTION);
@@ -569,15 +568,53 @@ public class frm_main extends javax.swing.JFrame {
     }//GEN-LAST:event_btn_saveFileActionPerformed
 
     private void tb_accountpoolMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tb_accountpoolMouseClicked
-        int row = this.tb_accountpool.rowAtPoint(evt.getPoint());
-        int col = this.tb_accountpool.columnAtPoint(evt.getPoint());
-//        this.tableModel.setValueAt(this.tableModel.getValueAt(row, col), row, col);
-        this.logger.log(Level.INFO, String.valueOf(this.tableModel.getValueAt(row, col)));
+
+        System.out.println(isCheckedAll);
     }//GEN-LAST:event_tb_accountpoolMouseClicked
 
     private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
+            if (isChecked != null && isChecked) {
+                if (i < tableModel.getRowCount()) {
+                    tableModel.removeRow(i);  // Xóa dòng đã chọn
+                }
+            }           
+        }     
     }//GEN-LAST:event_btn_deleteActionPerformed
+//Default checked list = False
+    private boolean isCheckedAll = false;
+
+    private void updateCheckBox() {
+        int countTrue = 0;
+        for (int i = 0; i < this.tableModel.getRowCount(); i++) {
+            boolean isChecked = (boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
+            if (isChecked) {
+                countTrue++;
+            }
+        }
+        if (countTrue == this.tableModel.getRowCount()) {
+            isCheckedAll = false;
+            return;
+        }
+        if (countTrue == 0) {
+            isCheckedAll = true;
+            return;
+        }
+        isCheckedAll = !isCheckedAll;
+
+    }
+
+    //Button to check all the check box
+    private void btn_checkallActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_checkallActionPerformed
+        // TODO add your handling code here:
+        updateCheckBox();
+//        this.isCheckedAll = !this.isCheckedAll;
+        for (int i = 0; i < this.tableModel.getRowCount(); i++) {
+            this.tb_accountpool.setValueAt(this.isCheckedAll, i, FieldTable.CHECKBOX);
+        }
+    }//GEN-LAST:event_btn_checkallActionPerformed
 
     /**
      * @param args the command line arguments
@@ -807,7 +844,6 @@ public class frm_main extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_checkall;
     private javax.swing.JButton btn_checktoken;
-    private javax.swing.JButton btn_clean;
     private javax.swing.JButton btn_copy;
     private javax.swing.JButton btn_delete;
     private javax.swing.JButton btn_login;
