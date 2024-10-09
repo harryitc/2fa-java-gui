@@ -89,11 +89,11 @@ public class frm_main extends javax.swing.JFrame {
         this.lb_qrcode.setText("");
         this.lb_tokenStatus.setText("");
         this.txt_directory.setText(DEFAULT_PATH_FILE_NAME + FILENAME);
-        
+
         this.btn_delete.setIcon(this.imageDeleteStatus);
         this.btn_clean.setIcon(imageClearStatus);
         this.btn_checkall.setIcon(imageCheckStatus);
-        
+
 //        try {
 //            Image img = ImageIO.read(getClass().getResource("resources/water.bmp"));
 //            this.btn_delete.setIcon(this.imageDeleteStatus);
@@ -131,6 +131,7 @@ public class frm_main extends javax.swing.JFrame {
         this.time.start();
 
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -371,7 +372,7 @@ public class frm_main extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    
+
 
     private void btn_registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_registerActionPerformed
 
@@ -433,8 +434,8 @@ public class frm_main extends javax.swing.JFrame {
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        if(!this.isUserInDatabase(this.txt_username.getText())){
+
+        if (!this.isUserInDatabase(this.txt_username.getText())) {
             JOptionPane.showMessageDialog(this, "Username is not registered. Please register",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -687,10 +688,10 @@ public class frm_main extends javax.swing.JFrame {
         }
         return false;
     }
-    
-    private boolean isUserInDatabase(String username){
+
+    private boolean isUserInDatabase(String username) {
         for (int i = 0; i < this.tableModel.getRowCount(); i++) {
-            if (this.tableModel.getValueAt(i, FieldTable.USERNAME) ==  username) {
+            if (username.equals(this.tableModel.getValueAt(i, FieldTable.USERNAME).toString())) {
                 return true;
             }
         }
@@ -806,9 +807,9 @@ public class frm_main extends javax.swing.JFrame {
         this.time.stop();
         this.isUserLogined = false;
         this.indexUserLogined = -1;
-        
+
         for (int i = tableModel.getRowCount() - 1; i >= 0; i--) {
-                tableModel.removeRow(i);  // Xóa dòng đã chọn
+            tableModel.removeRow(i);  // Xóa dòng đã chọn
         }
     }
 
