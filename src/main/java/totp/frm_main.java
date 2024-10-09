@@ -811,6 +811,8 @@ public class frm_main extends javax.swing.JFrame {
         for (int i = tableModel.getRowCount() - 1; i >= 0; i--) {
             tableModel.removeRow(i);  // Xóa dòng đã chọn
         }
+        //restart timer when press clean botton
+        this.time.start();
     }
 
     long currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
