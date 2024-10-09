@@ -22,6 +22,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -76,7 +77,9 @@ public class frm_main extends javax.swing.JFrame {
 
     private final ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("src/assets/icons/valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("src/assets/icons/invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
-
+    private final ImageIcon imageDeleteStatus = new ImageIcon(new ImageIcon("src/assets/icons/delete.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
+    private final ImageIcon imageClearStatus = new ImageIcon(new ImageIcon("src/assets/icons/clear.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
+    private final ImageIcon imageCheckStatus = new ImageIcon(new ImageIcon("src/assets/icons/check.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final DefaultTableModel tableModel;
 
     public frm_main() {
@@ -85,6 +88,18 @@ public class frm_main extends javax.swing.JFrame {
 
         this.lb_qrcode.setText("");
         this.lb_tokenStatus.setText("");
+        this.txt_directory.setText(DEFAULT_PATH_FILE_NAME + FILENAME);
+        
+        this.btn_delete.setIcon(this.imageDeleteStatus);
+        this.btn_clean.setIcon(imageClearStatus);
+        this.btn_checkall.setIcon(imageCheckStatus);
+        
+//        try {
+//            Image img = ImageIO.read(getClass().getResource("resources/water.bmp"));
+//            this.btn_delete.setIcon(this.imageDeleteStatus);
+//        } catch (Exception ex) {
+//            System.out.println(ex);
+//        }
         this.txt_directory.setText("File path");
 
         this.time = new Timer(DELAY_PER_SECOND, new ActionListener() {
@@ -116,7 +131,6 @@ public class frm_main extends javax.swing.JFrame {
         this.time.start();
 
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -155,6 +169,7 @@ public class frm_main extends javax.swing.JFrame {
         txt_directory = new javax.swing.JTextArea();
         btn_checkall = new javax.swing.JButton();
         btn_delete = new javax.swing.JButton();
+        btn_clean = new javax.swing.JButton();
 
         jButton1.setText("jButton1");
 
@@ -162,7 +177,7 @@ public class frm_main extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TOTP");
-        setMinimumSize(new java.awt.Dimension(580, 600));
+        setMinimumSize(new java.awt.Dimension(600, 600));
         setName("TOTP"); // NOI18N
         setResizable(false);
         setSize(new java.awt.Dimension(580, 570));
@@ -330,24 +345,33 @@ public class frm_main extends javax.swing.JFrame {
 
         getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 480, 440, 60));
 
-        btn_checkall.setText("v");
+        btn_checkall.setToolTipText("CheckAll");
         btn_checkall.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_checkallActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_checkall, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 360, -1, -1));
+        getContentPane().add(btn_checkall, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 360, 30, 30));
 
-        btn_delete.setText("X");
+        btn_delete.setToolTipText("Delete");
         btn_delete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_deleteActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 389, -1, -1));
+        getContentPane().add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 400, 30, 30));
+
+        btn_clean.setToolTipText("Clean");
+        btn_clean.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_cleanActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_clean, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 440, 30, 30));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    
 
     private void btn_registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_registerActionPerformed
 
@@ -406,6 +430,12 @@ public class frm_main extends javax.swing.JFrame {
 
         if (this.txt_username.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Username cannot be empty.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if(!this.isUserInDatabase(this.txt_username.getText())){
+            JOptionPane.showMessageDialog(this, "Username is not registered. Please register",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -657,6 +687,15 @@ public class frm_main extends javax.swing.JFrame {
         }
         return false;
     }
+    
+    private boolean isUserInDatabase(String username){
+        for (int i = 0; i < this.tableModel.getRowCount(); i++) {
+            if (this.tableModel.getValueAt(i, FieldTable.USERNAME) ==  username) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 //Default checked list = False
     private boolean isCheckedAll = false;
@@ -690,6 +729,11 @@ public class frm_main extends javax.swing.JFrame {
             this.tb_accountpool.setValueAt(this.isCheckedAll, i, FieldTable.CHECKBOX);
         }
     }//GEN-LAST:event_btn_checkallActionPerformed
+
+    private void btn_cleanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_cleanActionPerformed
+        // TODO add your handling code here:
+        this.reset_form();
+    }//GEN-LAST:event_btn_cleanActionPerformed
 
     /**
      * @param args the command line arguments
@@ -752,11 +796,19 @@ public class frm_main extends javax.swing.JFrame {
         final String EMPTY = "";
         this.txt_password.setText(EMPTY);
         this.txt_username.setText(EMPTY);
-        this.lb_otpauth.setText(EMPTY);
+        this.txt_otpauth.setText(EMPTY);
         this.lb_tokenStatus.setIcon(null);
         this.lb_qrcode.setIcon(null);
         this.txt_otpToken.setText("######");
         this.lb_timer.setText(EMPTY);
+        this.txt_directory.setText("File path.");
+        this.txt_checktoken.setText(EMPTY);
+        this.time.stop();
+        this.isUserLogined = false;
+        
+        for (int i = tableModel.getRowCount() - 1; i >= 0; i--) {
+                tableModel.removeRow(i);  // Xóa dòng đã chọn
+        }
     }
 
     long currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
@@ -895,6 +947,7 @@ public class frm_main extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btn_checkall;
     private javax.swing.JButton btn_checktoken;
+    private javax.swing.JButton btn_clean;
     private javax.swing.JButton btn_copy;
     private javax.swing.JButton btn_delete;
     private javax.swing.JButton btn_login;
