@@ -586,14 +586,7 @@ public class frm_main extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Không có người dùng để xóa");
             return;
         }
-        //Có giá trị nhưng chưa tích chọn
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
-            if (isChecked != null && isChecked) {
-                this.isCheckedAll = true;
-                break;
-            }
-        }
+
         //Khi checkbox được tích lên
         int response = JOptionPane.showConfirmDialog(this, "Bạn có muốn xóa user(s) này không?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (response != JOptionPane.YES_OPTION) {
