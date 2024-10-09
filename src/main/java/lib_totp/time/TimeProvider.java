@@ -1,6 +1,6 @@
 package lib_totp.time;
 
-import dev.samstevens.totp.exceptions.TimeProviderException;
+import lib_totp.exceptions.TimeProviderException;
 
 public interface TimeProvider {
     /**
