@@ -581,19 +581,16 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
+        if (!this.isUserLogined){
+            JOptionPane.showMessageDialog(this, "Không được xóa người đăng nhập hiện tại");
+            return;
+        }
         //Khi table chưa có giá trị
         if (tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "Không có người dùng để xóa");
             return;
         }
-        //Có giá trị nhưng chưa tích chọn
-        for (int i = 0; i < tableModel.getRowCount(); i++) {
-            Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
-            if (isChecked != null && isChecked) {
-                this.isCheckedAll = true;
-                break;
-            }
-        }
+
         //Khi checkbox được tích lên
         int response = JOptionPane.showConfirmDialog(this, "Bạn có muốn xóa user(s) này không?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (response != JOptionPane.YES_OPTION) {
