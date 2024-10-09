@@ -71,7 +71,7 @@ public class frm_main extends javax.swing.JFrame {
 
     private final int DIGIT_TOKEN = 6;
 
-    private int indexUserLogined;
+    private int indexUserLogined = -1;
 
     private boolean isUserLogined = false;
 
@@ -805,6 +805,7 @@ public class frm_main extends javax.swing.JFrame {
         this.txt_checktoken.setText(EMPTY);
         this.time.stop();
         this.isUserLogined = false;
+        this.indexUserLogined = -1;
         
         for (int i = tableModel.getRowCount() - 1; i >= 0; i--) {
                 tableModel.removeRow(i);  // Xóa dòng đã chọn
