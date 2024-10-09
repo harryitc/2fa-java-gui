@@ -225,7 +225,7 @@ public class frm_main extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
-        tb_accountpool.setRowSelectionAllowed(false);
+        tb_accountpool.setCellSelectionEnabled(true);
         tb_accountpool.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tb_accountpool.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -578,10 +578,10 @@ public class frm_main extends javax.swing.JFrame {
             Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
             if (isChecked != null && isChecked) {
                 if (i < tableModel.getRowCount()) {
-                    tableModel.removeRow(i);  // Xóa dòng đã chọn
+                tableModel.removeRow(i);  // Xóa dòng đã chọn
                 }
-            }           
-        }     
+            }
+        }
     }//GEN-LAST:event_btn_deleteActionPerformed
 //Default checked list = False
     private boolean isCheckedAll = false;
