@@ -7,6 +7,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
@@ -84,7 +85,7 @@ public class frm_main extends javax.swing.JFrame {
 
         this.lb_qrcode.setText("");
         this.lb_tokenStatus.setText("");
-        this.txt_directory.setText(DEFAULT_PATH_FILE_NAME + FILENAME);
+        this.txt_directory.setText("File path");
 
         this.time = new Timer(DELAY_PER_SECOND, new ActionListener() {
             @Override
@@ -202,7 +203,7 @@ public class frm_main extends javax.swing.JFrame {
         lb_qrcode.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         lb_qrcode.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         lb_qrcode.setPreferredSize(new java.awt.Dimension(200, 200));
-        getContentPane().add(lb_qrcode, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 30, -1, -1));
+        getContentPane().add(lb_qrcode, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 30, -1, -1));
         getContentPane().add(txt_checktoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 208, 124, -1));
 
         lb_checkOTP.setText("Check Token TOTP");
@@ -231,24 +232,26 @@ public class frm_main extends javax.swing.JFrame {
         getContentPane().add(lb_OTPtoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 250, -1, -1));
 
         tb_accountpool.setModel(new javax.swing.table.DefaultTableModel(
-                new Object[][]{},
-                new String[]{
-                    "Username", "Password", "Secret Key", "Token", "S", ""
-                }
+            new Object [][] {
+
+            },
+            new String [] {
+                "Username", "Password", "Secret Key", "Token", "S", ""
+            }
         ) {
-            Class[] types = new Class[]{
+            Class[] types = new Class [] {
                 java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Boolean.class
             };
-            boolean[] canEdit = new boolean[]{
+            boolean[] canEdit = new boolean [] {
                 false, false, false, false, false, true
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
+                return types [columnIndex];
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
+                return canEdit [columnIndex];
             }
         });
         tb_accountpool.setCellSelectionEnabled(true);
@@ -544,6 +547,8 @@ public class frm_main extends javax.swing.JFrame {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            String nameFile = fileToOpen.getAbsoluteFile().getAbsolutePath();
+            txt_directory.setText(nameFile);
         }
 
     }//GEN-LAST:event_btn_openFileActionPerformed
@@ -553,7 +558,7 @@ public class frm_main extends javax.swing.JFrame {
 //        try {
 //            BufferedWriter bw = null;
 //            String filename = DEFAULT_PATH_FILE_NAME;
-        ////            String banMa = txt_banma.getText();
+//        //            String banMa = txt_banma.getText();
 //            bw = new BufferedWriter(new FileWriter(filename));
 ////            bw.write(banMa);
 //            bw.close();
@@ -561,12 +566,11 @@ public class frm_main extends javax.swing.JFrame {
 //        } catch (IOException e) {
 //            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, e);
 //        }
-        if (this.tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "No data to save!",
-                    "Info", JOptionPane.OK_OPTION);
-            return;
-        }
-
+//        if (this.tableModel.getRowCount() == 0) {
+//            JOptionPane.showMessageDialog(this, "No data to save!",
+//                    "Info", JOptionPane.OK_OPTION);
+//            return;
+//        }
         JSONArray jsonArray = new JSONArray();
 //        TableModel model = this.tableModel;
 
@@ -581,15 +585,35 @@ public class frm_main extends javax.swing.JFrame {
             jsonArray.put(rowObject);  // Thêm hàng vào mảng JSON
         }
 
-        // Ghi JSON ra file
-        try (FileWriter file = new FileWriter(this.txt_directory.getText())) {
-            file.write(jsonArray.toString(4));  // Ghi dữ liệu với indent = 4. // Định dạng đẹp với thụt đầu dòng 4 khoảng trắng
-            file.flush();
-            JOptionPane.showMessageDialog(this, "Data saved successfully!",
-                    "Success", JOptionPane.INFORMATION_MESSAGE);
-        } catch (IOException e) {
-            e.printStackTrace();
+        JFileChooser fileChooser = new JFileChooser();
+        int userSelection = fileChooser.showSaveDialog(this);
+        if (userSelection == JFileChooser.APPROVE_OPTION) {
+            File fileToSave = fileChooser.getSelectedFile();
+            String fileName = fileToSave.getName();
+
+            // Kiểm tra nếu người dùng không nhập phần mở rộng
+            if (!fileName.contains(".")) {
+                // Mặc định thêm đuôi .json nếu người dùng không nhập đuôi
+                fileToSave = new File(fileToSave.getAbsolutePath() + ".json");
+            }
+
+            try (FileWriter fileWriter
+                    = new FileWriter(fileToSave)) {
+                fileWriter.write(jsonArray.toString(4));  // Ghi dữ liệu với indent = 4. // Định dạng đẹp với thụt đầu dòng 4 khoảng trắng
+                fileWriter.flush();
+                String nameFile = fileToSave.getAbsolutePath();
+                txt_directory.setText(nameFile);
+                JOptionPane.showMessageDialog(this, "Data saved successfully!",
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error saving file: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
         }
+
+        // Ghi JSON ra file
+//        
+//        }
 
     }//GEN-LAST:event_btn_saveFileActionPerformed
 
