@@ -23,6 +23,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -75,7 +76,9 @@ public class frm_main extends javax.swing.JFrame {
     
     private final ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("src/assets/icons/valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("src/assets/icons/invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
-
+    private final  ImageIcon imageDeleteStatus = new ImageIcon(new ImageIcon("src/assets/icons/delete.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
+    private final  ImageIcon imageClearStatus = new ImageIcon(new ImageIcon("src/assets/icons/clear.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
+    private final  ImageIcon imageCheckStatus = new ImageIcon(new ImageIcon("src/assets/icons/check.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final DefaultTableModel tableModel;
 
     public frm_main() {
@@ -85,9 +88,19 @@ public class frm_main extends javax.swing.JFrame {
         this.lb_qrcode.setText("");
         this.lb_tokenStatus.setText("");
         this.txt_directory.setText(DEFAULT_PATH_FILE_NAME + FILENAME);
+        
+        this.btn_delete.setIcon(this.imageDeleteStatus);
+        this.btn_clean.setIcon(imageClearStatus);
+        this.btn_checkall.setIcon(imageCheckStatus);
+        
+//        try {
+//            Image img = ImageIO.read(getClass().getResource("resources/water.bmp"));
+//            this.btn_delete.setIcon(this.imageDeleteStatus);
+//        } catch (Exception ex) {
+//            System.out.println(ex);
+//        }
 
     }
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -134,7 +147,7 @@ public class frm_main extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TOTP");
-        setMinimumSize(new java.awt.Dimension(580, 600));
+        setMinimumSize(new java.awt.Dimension(600, 600));
         setName("TOTP"); // NOI18N
         setResizable(false);
         setSize(new java.awt.Dimension(580, 570));
@@ -302,23 +315,22 @@ public class frm_main extends javax.swing.JFrame {
 
         getContentPane().add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 480, 440, 60));
 
-        btn_checkall.setText("v");
-        getContentPane().add(btn_checkall, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 360, -1, -1));
+        btn_checkall.setToolTipText("CheckAll");
+        getContentPane().add(btn_checkall, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 360, 30, 30));
 
-        btn_delete.setText("X");
+        btn_delete.setToolTipText("Delete");
         btn_delete.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_deleteActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 389, -1, -1));
+        getContentPane().add(btn_delete, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 400, 30, 30));
 
-        btn_clean.setText("C");
-        getContentPane().add(btn_clean, new org.netbeans.lib.awtextra.AbsoluteConstraints(546, 418, -1, -1));
+        btn_clean.setToolTipText("Clean");
+        getContentPane().add(btn_clean, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 440, 30, 30));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
     
 
     private void btn_registerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_registerActionPerformed
@@ -577,6 +589,7 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
+
     }//GEN-LAST:event_btn_deleteActionPerformed
 
     /**
