@@ -413,6 +413,8 @@ public class frm_main extends javax.swing.JFrame {
         StringSelection stringSelection = new StringSelection(this.txt_otpToken.getText());
         Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
         clpbrd.setContents(stringSelection, null);
+
+
     }//GEN-LAST:event_btn_copyActionPerformed
 
     private void btn_checktokenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_checktokenActionPerformed
@@ -428,7 +430,12 @@ public class frm_main extends javax.swing.JFrame {
         // get n-digits code.
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier codeVerifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
-
+        //Checktoken text box cant not be empty, otherwise it will pop up an error message
+        if (this.txt_checktoken.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The token can't not be empty",
+                    "Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         // secret = the shared secret for the user
         // code = the code submitted by the user
         boolean successful = codeVerifier.isValidCode(this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString(), this.txt_checktoken.getText());
@@ -574,16 +581,35 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
+        //Khi table chưa có giá trị
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Không có người dùng để xóa");
+            return;
+        }
+        //Có giá trị nhưng chưa tích chọn
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
             if (isChecked != null && isChecked) {
-                if (i < tableModel.getRowCount()) {
-                tableModel.removeRow(i);  // Xóa dòng đã chọn
+                this.isCheckedAll = true;
+                break;
+            }
+        }
+        //Khi checkbox được tích lên
+        int response = JOptionPane.showConfirmDialog(this, "Bạn có muốn xóa user(s) này không?", "Confirm", JOptionPane.YES_NO_OPTION);
+        if (response != JOptionPane.YES_OPTION) {
+            return;
+        }
+
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
+            if (isChecked != null && isChecked) {
+                if (i <= tableModel.getRowCount()) {
+                    tableModel.removeRow(i);  // Xóa dòng đã chọn
                 }
             }
         }
     }//GEN-LAST:event_btn_deleteActionPerformed
-//Default checked list = False
+    //Default checked list = False
     private boolean isCheckedAll = false;
 
     private void updateCheckBox() {
