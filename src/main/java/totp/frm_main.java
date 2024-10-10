@@ -233,16 +233,16 @@ public class frm_main extends javax.swing.JFrame {
         txt_otpToken.setFont(new java.awt.Font("Helvetica Neue", 1, 48)); // NOI18N
         txt_otpToken.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         txt_otpToken.setText("######");
-        getContentPane().add(txt_otpToken, new org.netbeans.lib.awtextra.AbsoluteConstraints(348, 271, 190, 78));
+        getContentPane().add(txt_otpToken, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 270, 190, 78));
 
         btn_copy.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
-        btn_copy.setText("Copy");
+        btn_copy.setText("Ctrl + C");
         btn_copy.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btn_copyActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_copy, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 250, 60, 20));
+        getContentPane().add(btn_copy, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 250, 70, 20));
 
         lb_OTPtoken.setText("OTP Token");
         getContentPane().add(lb_OTPtoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 250, -1, -1));

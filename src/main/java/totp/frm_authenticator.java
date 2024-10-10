@@ -1,41 +1,54 @@
 
+import dev.samstevens.totp.code.CodeGenerator;
+import dev.samstevens.totp.code.CodeVerifier;
+import dev.samstevens.totp.code.DefaultCodeGenerator;
+import dev.samstevens.totp.code.DefaultCodeVerifier;
+import dev.samstevens.totp.code.HashingAlgorithm;
+import dev.samstevens.totp.exceptions.CodeGenerationException;
+import dev.samstevens.totp.exceptions.QrGenerationException;
+import dev.samstevens.totp.qr.QrDataFactory;
+import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.InputMethodEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import java.util.Base64;
 import org.apache.commons.codec.binary.Base32;
 
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
+import dev.samstevens.totp.secret.SecretGenerator;
+import dev.samstevens.totp.qr.QrData;
+import dev.samstevens.totp.qr.QrGenerator;
+import dev.samstevens.totp.qr.ZxingPngQrGenerator;
+import dev.samstevens.totp.time.SystemTimeProvider;
+import dev.samstevens.totp.time.TimeProvider;
 import static dev.samstevens.totp.util.Utils.getDataUriForImage;
+import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ByteArrayInputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import lib_totp.code.CodeGenerator;
-import lib_totp.code.CodeVerifier;
-import lib_totp.code.DefaultCodeGenerator;
-import lib_totp.code.DefaultCodeVerifier;
-import lib_totp.code.HashingAlgorithm;
-import lib_totp.exceptions.QrGenerationException;
-import lib_totp.qr.QrData;
-import lib_totp.qr.QrGenerator;
-import lib_totp.qr.ZxingPngQrGenerator;
-import lib_totp.secret.DefaultSecretGenerator;
-import lib_totp.secret.SecretGenerator;
-import lib_totp.time.SystemTimeProvider;
-import lib_totp.time.TimeProvider;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
@@ -46,14 +59,11 @@ import lib_totp.time.TimeProvider;
  * @author test
  */
 public class frm_authenticator extends javax.swing.JFrame {
-
     private static final String REGISTRATION_FILE = "registration.key";
     private boolean isLoggedIn = false;
 
     private Logger logger = Logger.getLogger(frm_authenticator.class.getName());
     private final int TIME_STEP = 30;
-
-    Timer time;
 
     private Disposable countdownDisposable; // Biến để quản lý countdown
     private boolean isCounting = false; // Để kiểm tra trạng thái countdown
@@ -68,8 +78,7 @@ public class frm_authenticator extends javax.swing.JFrame {
      */
     public frm_authenticator() {
         initComponents();
-        setLocationRelativeTo(this);
-
+        
 //        try {
 //            getContentPane().add(new JPanelWithBackground("test.png"));
 //        } catch (IOException e) {
@@ -168,7 +177,6 @@ public class frm_authenticator extends javax.swing.JFrame {
         getContentPane().add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 570, 110, 30));
 
         btn_login.setText("login");
-        btn_login.setEnabled(false);
         btn_login.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 btn_loginMouseClicked(evt);
@@ -314,28 +322,147 @@ public class frm_authenticator extends javax.swing.JFrame {
                 btn_RegisterActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_Register, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 270, -1, 30));
+        getContentPane().add(btn_Register, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 270, -1, -1));
         getContentPane().add(txt_password, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 150, 200, -1));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-
+   
+    
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
         // TODO add your handling code here:
         String username = txt_username.getText();
         String password = new String(txt_password.getPassword());
-
+        
         if (!username.isEmpty() && !password.isEmpty()) {
-            isLoggedIn = true;
+            try {
+                String registrationKeyFromFile =
+                        AES.readRegistrationKeyFromFile(REGISTRATION_FILE);
+                String registrationKey =
+                        AES.generateRegistrationKey(username, password);
+                
+                String formatToString = "";
+                try {
+                    SecretKey key = AES.generateKey(registrationKey);
+                    formatToString = Base64.getEncoder().encodeToString(key.getEncoded());
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+                
+                if (registrationKeyFromFile.equals(formatToString)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Login Successful with Registration Key: " + formatToString,
+                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                    txt_secret.setText(formatToString);
+                    isLoggedIn = true;
+                    
+                } else {
+                    JOptionPane.showMessageDialog(this, "Invalid Username or Password.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                JOptionPane.showMessageDialog(this, "Error reading registration key: " 
+                        + e.getMessage(),"Error", JOptionPane.ERROR_MESSAGE);
+            }
         } else {
             JOptionPane.showMessageDialog(this, "Username and Password cannot be empty.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                    "Error", JOptionPane.ERROR_MESSAGE);       
         }
-
+        
 //        SecretGenerator secretGenerator = new DefaultSecretGenerator();
 //        String secret = secretGenerator.generate();
 //        this.txt_secret.setText(secret);
+
+        QrData data = new QrData.Builder()
+                .label(new String(this.txt_password.getPassword()))
+                .secret(this.txt_secret.getText())
+                .issuer(this.txt_username.getText())
+                .algorithm(HashingAlgorithm.SHA1) // More on this below
+                .digits(6)
+                .period(TIME_STEP)
+                .build();
+
+        String digits;
+        try {
+            TimeProvider timeProvider = new SystemTimeProvider();
+            digits = this.getDigitsFromHash(this.generateHash(this.txt_secret.getText(), timeProvider.getTime() / TIME_STEP));
+            System.out.println("frm_authenticator.jButton4ActionPerformed() = " + digits);
+            this.txt_token.setText(digits);
+
+//            try {
+//                CodeGenerator codeGenerator = new DefaultCodeGenerator();
+//                String code = codeGenerator.generate(secret, TIME_STEP);
+//                System.out.println("frm_authenticator.jButton4ActionPerformed().... " + code);
+////                this.txt_token.setText(code);
+//            } catch (CodeGenerationException ex) {
+//                Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+//            }
+        } catch (InvalidKeyException ex) {
+            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+//        DefaultCodeGenerator defaultCodeGenerator = new DefaultCodeGenerator();
+//        
+//        secret.
+//        
+//        try {
+//            byte[] hash = generateHash(this.txt_secret, counter);
+//            System.out.println("frm_authenticator.jButton4ActionPerformed()" + getDigitsFromHash(hash));
+//        } catch (Exception e) {
+//            throw new CodeGenerationException("Failed to generate code. See nested exception.", e);
+//        }
+        this.txt_oauth.setText(data.getUri());
+
+        QrGenerator generator = new ZxingPngQrGenerator();
+        try {
+            byte[] imageData = generator.generate(data);
+            String mimeType = generator.getImageMimeType();
+            String dataUri = getDataUriForImage(imageData, mimeType);
+            System.out.println("frm_authenticator.jButton4ActionPerformed()" + dataUri);
+
+            // Remove the prefix if the base64 string has "data:image/png;base64," or similar
+            String base64Image = dataUri.split(",")[1];
+            // Decode base64 string into byte array
+            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+
+            // Convert byte array into BufferedImage
+            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+            BufferedImage image;
+            try {
+                image = ImageIO.read(bis);
+                // Scale the image if necessary
+                Image scaledImage = image.getScaledInstance(300, 300, Image.SCALE_DEFAULT);
+
+                // Create ImageIcon and set it to JLabel
+                ImageIcon imageIcon = new ImageIcon(scaledImage);
+
+                this.lb_qrcode.setIcon(imageIcon);
+
+            } catch (IOException ex) {
+                Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            ActionListener taskPerformer = new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    
+                }
+                
+            };
+            Timer timer = new Timer(100, taskPerformer);
+            timer.setRepeats(false);
+            timer.start();
+
+//            Thread.sleep(5000);
+//            this.startCountdown();
+//            this.txt_time.setText("30");
+//            CountdownTimerTask countdownTimerTask = new CountdownTimerTask();
+        } catch (QrGenerationException ex) {
+            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
     }//GEN-LAST:event_btn_loginActionPerformed
 
@@ -393,7 +520,8 @@ public class frm_authenticator extends javax.swing.JFrame {
 
         TimeProvider timeProvider = new SystemTimeProvider();
 
-//        System.out.println("frm_authenticator.btn_checkActionPerformed() + " + timeProvider.getTime());
+        System.out.println("frm_authenticator.btn_checkActionPerformed() + " + timeProvider.getTime());
+
         // get n-digits code.
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier codeVerifier = new DefaultCodeVerifier(codeGenerator, timeProvider);
@@ -408,7 +536,7 @@ public class frm_authenticator extends javax.swing.JFrame {
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
         // TODO add your handling code here:
-
+        
     }//GEN-LAST:event_formKeyPressed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
@@ -427,16 +555,30 @@ public class frm_authenticator extends javax.swing.JFrame {
         // TODO add your handling code here:
         String username = txt_username.getText();
         String password = new String(txt_password.getPassword());
-
-        if (!username.isEmpty() && !password.isEmpty()) {
-            SecretGenerator secretGenerator = new DefaultSecretGenerator();
-            this.txt_secret.setText(secretGenerator.generate());
-            this.myLogic();
-        } else {
+        
+        if(!username.isEmpty() && !password.isEmpty()){
+            try {
+                String registrationKey = AES.generateRegistrationKey(username, password); 
+                
+                String formatToString = "";
+                try {
+                    SecretKey key = AES.generateKey(registrationKey);
+                    formatToString = Base64.getEncoder().encodeToString(key.getEncoded());
+                    System.err.println("formatotostring = " + formatToString);
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                AES.saveRegistrationKeyToFile(formatToString, REGISTRATION_FILE);
+                JOptionPane.showMessageDialog(this, "Registration Successfull. Registration Key saved",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error saving registration Key: " + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }else{
             JOptionPane.showMessageDialog(this, "Username and Passowrd cannot be empty.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-
     }//GEN-LAST:event_btn_RegisterActionPerformed
 
     /**
@@ -474,6 +616,34 @@ public class frm_authenticator extends javax.swing.JFrame {
         });
     }
 
+    // Phương thức để bắt đầu countdown
+    private void startCountdown() {
+        // Nếu countdown đang chạy, không cho phép chạy lại
+        if (isCounting) {
+            System.out.println("Countdown is already running!");
+            return;
+        }
+
+        isCounting = true; // Đặt trạng thái là đang đếm ngược
+
+        // Tạo observable để phát ra số từ 0 đến 30
+        countdownDisposable = Observable.interval(1, TimeUnit.SECONDS)
+                .take(31) // Đếm ngược từ 30 giây
+                .map(i -> 30 - i) // Chuyển số giây còn lại
+                .doOnNext(i -> SwingUtilities.invokeLater(()
+                -> this.onCountdownUpdate(i)
+        ))
+                // Cập nhật giao diện sau mỗi giây
+                .doOnComplete(() -> {   
+                    SwingUtilities.invokeLater(() -> {
+                        this.onCountdownFinished();
+                    });
+                    // Khi kết thúc, gọi lại chính phương thức này để countdown lại từ đầu
+                    startCountdown(); // Tự động chạy lại
+                })
+                .subscribe();
+    }
+
     /**
      * Generate a HMAC-SHA1 hash of the counter number.
      */
@@ -483,12 +653,14 @@ public class frm_authenticator extends javax.swing.JFrame {
         for (int i = 8; i-- > 0; value >>>= 8) {
             data[i] = (byte) value;
         }
+
         // Create a HMAC-SHA1 signing key from the shared key
-        Base32 codec = new Base32();
-        byte[] decodedKey = codec.decode(key);
+//        Base64 codec = new Base64();
+        byte[] decodedKey = Base64.getDecoder().decode(key);
         SecretKeySpec signKey = new SecretKeySpec(decodedKey, HashingAlgorithm.SHA1.getHmacAlgorithm());
         Mac mac = Mac.getInstance(HashingAlgorithm.SHA1.getHmacAlgorithm());
         mac.init(signKey);
+
         // Create a hash of the counter value
         return mac.doFinal(data);
     }
@@ -498,98 +670,19 @@ public class frm_authenticator extends javax.swing.JFrame {
      */
     private String getDigitsFromHash(byte[] hash) {
         int offset = hash[hash.length - 1] & 0xF;
+
         long truncatedHash = 0;
+
         for (int i = 0; i < 4; ++i) {
             truncatedHash <<= 8;
             truncatedHash |= (hash[offset + i] & 0xFF);
         }
+
         truncatedHash &= 0x7FFFFFFF;
         truncatedHash %= Math.pow(10, 6);
+
         // Left pad with 0s for a n-digit code
         return String.format("%0" + 6 + "d", truncatedHash);
-    }
-
-    long currentTime = TIME_STEP - (new SystemTimeProvider().getTime() % TIME_STEP);
-
-    private void start(java.awt.event.ActionEvent evt) {
-        TimeProvider timeProvider = new SystemTimeProvider();
-        this.txt_time.setText(String.valueOf(TIME_STEP - (timeProvider.getTime() % TIME_STEP)));
-        time = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String digits = "";
-                TimeProvider timeProvider1 = new SystemTimeProvider();
-                try {
-                    currentTime = TIME_STEP - (timeProvider1.getTime() % TIME_STEP);
-                    txt_time.setText(String.valueOf(currentTime));
-                    digits = getDigitsFromHash(generateHash(txt_secret.getText(), timeProvider1.getTime() / TIME_STEP));
-                    txt_token.setText(digits);
-                } catch (InvalidKeyException ex) {
-                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-                } catch (NoSuchAlgorithmException ex) {
-                    Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-        time.start();
-    }
-
-    private void myLogic() {
-        QrData data = new QrData.Builder()
-                .label(new String(this.txt_password.getPassword()))
-                .secret(this.txt_secret.getText())
-                .issuer(this.txt_username.getText())
-                .algorithm(HashingAlgorithm.SHA1) // More on this below
-                .digits(6)
-                .period(TIME_STEP)
-                .build();
-
-        String digits;
-        try {
-            TimeProvider timeProvider = new SystemTimeProvider();
-            digits = this.getDigitsFromHash(this.generateHash(this.txt_secret.getText(), timeProvider.getTime() / TIME_STEP));
-            this.txt_token.setText(digits);
-            this.start(null);
-
-        } catch (InvalidKeyException ex) {
-            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        this.txt_oauth.setText(data.getUri());
-
-        QrGenerator generator = new ZxingPngQrGenerator();
-        try {
-            byte[] imageData = generator.generate(data);
-            String mimeType = generator.getImageMimeType();
-            String dataUri = getDataUriForImage(imageData, mimeType);
-
-            // Remove the prefix if the base64 string has "data:image/png;base64," or similar
-            String base64Image = dataUri.split(",")[1];
-            // Decode base64 string into byte array
-            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
-            // Convert byte array into BufferedImage
-            ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-            BufferedImage image;
-            try {
-                image = ImageIO.read(bis);
-                // Scale the image if necessary
-                Image scaledImage = image.getScaledInstance(300, 300, Image.SCALE_DEFAULT);
-
-                // Create ImageIcon and set it to JLabel
-                ImageIcon imageIcon = new ImageIcon(scaledImage);
-
-                this.lb_qrcode.setIcon(imageIcon);
-
-            } catch (IOException ex) {
-                Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        } catch (QrGenerationException ex) {
-            Logger.getLogger(frm_authenticator.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -621,4 +714,17 @@ public class frm_authenticator extends javax.swing.JFrame {
     private javax.swing.JTextField txt_validate;
     // End of variables declaration//GEN-END:variables
 
+    public void onCountdownStart() {
+        System.out.println("Countdown started!");
+    }
+
+    public void onCountdownUpdate(long timeRemaining) {
+        // Cập nhật giao diện với thời gian còn lại
+        this.txt_time.setText("Time remaining: " + timeRemaining + " seconds");
+    }
+
+    public void onCountdownFinished() {
+        System.out.println("Countdown finished!");
+//        JOptionPane.showMessageDialog(null, "Countdown has reached zero!");
+    }
 }
