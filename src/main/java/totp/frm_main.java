@@ -80,6 +80,7 @@ public class frm_main extends javax.swing.JFrame {
     private final ImageIcon imageDeleteStatus = new ImageIcon(new ImageIcon("src/assets/icons/delete.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageClearStatus = new ImageIcon(new ImageIcon("src/assets/icons/clear.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageCheckStatus = new ImageIcon(new ImageIcon("src/assets/icons/check.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
+    private final ImageIcon imageIcon = new ImageIcon(new ImageIcon("src/assets/icons/logo-big.png").getImage().getScaledInstance(40, 45, Image.SCALE_SMOOTH));
     private final DefaultTableModel tableModel;
 
     public frm_main() {
@@ -144,6 +145,7 @@ public class frm_main extends javax.swing.JFrame {
         txt_password = new javax.swing.JPasswordField();
         btn_login = new javax.swing.JButton();
         btn_register = new javax.swing.JButton();
+        lb_icon = new javax.swing.JLabel();
         lb_qrcode = new javax.swing.JLabel();
         txt_checktoken = new javax.swing.JTextField();
         lb_checkOTP = new javax.swing.JLabel();
@@ -207,6 +209,9 @@ public class frm_main extends javax.swing.JFrame {
             }
         });
         getContentPane().add(btn_register, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 161, -1, -1));
+
+        lb_icon.setPreferredSize(new java.awt.Dimension(60, 60));
+        getContentPane().add(lb_icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 110, 40, 40));
 
         lb_qrcode.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_qrcode.setText("QRCode Is HERE!!!");
@@ -879,6 +884,9 @@ public class frm_main extends javax.swing.JFrame {
 
                 this.lb_qrcode.setIcon(imageIcon);
 
+                // set icon in the middle of the qrcode
+                this.lb_icon.setIcon(imageIcon);
+
             } catch (IOException ex) {
                 Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -933,6 +941,7 @@ public class frm_main extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lb_OTPtoken;
     private javax.swing.JLabel lb_checkOTP;
+    private javax.swing.JLabel lb_icon;
     private javax.swing.JLabel lb_otpauth;
     private javax.swing.JLabel lb_password;
     private javax.swing.JLabel lb_qrcode;
