@@ -470,7 +470,7 @@ public class frm_main extends javax.swing.JFrame {
         }
 
         if (!this.currentUsername.equals(this.txt_username.getText())) {
-            JOptionPane.showMessageDialog(this, "Field username have changed. You must be login again!\nBefore value: '" + this.currentUsername + "'.\nAfter (current) value: '" + this.txt_username.getText() + "'.",
+            JOptionPane.showMessageDialog(this, "Field username has changed. You must be login again!\nBefore value: '" + this.currentUsername + "'.\nAfter (current) value: '" + this.txt_username.getText() + "'.",
                     "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
