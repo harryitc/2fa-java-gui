@@ -80,7 +80,7 @@ public class frm_main extends javax.swing.JFrame {
     private final ImageIcon imageDeleteStatus = new ImageIcon(new ImageIcon("src/assets/icons/delete.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageClearStatus = new ImageIcon(new ImageIcon("src/assets/icons/clear.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageCheckStatus = new ImageIcon(new ImageIcon("src/assets/icons/check.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
-    private final ImageIcon imageIcon = new ImageIcon(new ImageIcon("src/assets/icons/logo-big.png").getImage().getScaledInstance(40, 45, Image.SCALE_SMOOTH));
+    private final ImageIcon imageIconQrcode = new ImageIcon(new ImageIcon("src/assets/icons/logo-big.png").getImage().getScaledInstance(40, 45, Image.SCALE_SMOOTH));
     private final DefaultTableModel tableModel;
 
     public frm_main() {
@@ -885,7 +885,7 @@ public class frm_main extends javax.swing.JFrame {
                 this.lb_qrcode.setIcon(imageIcon);
 
                 // set icon in the middle of the qrcode
-                this.lb_icon.setIcon(imageIcon);
+                this.lb_icon.setIcon(this.imageIconQrcode);
 
             } catch (IOException ex) {
                 Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
