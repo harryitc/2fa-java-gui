@@ -448,8 +448,8 @@ public class frm_main extends javax.swing.JFrame {
         this.txt_otpToken.setText(token);
         this.startTime(null);
 
-        JOptionPane.showMessageDialog(this, "Logined success.",
-                "Success", JOptionPane.OK_CANCEL_OPTION);
+        JOptionPane.showMessageDialog(this, "Please enter your token.",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
 
     }//GEN-LAST:event_btn_loginActionPerformed
 
@@ -496,6 +496,8 @@ public class frm_main extends javax.swing.JFrame {
 
         if (successful && isSameHash(hash)) {
             this.lb_tokenStatus.setIcon(this.imageValidStatus);
+            JOptionPane.showMessageDialog(this, "Login successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
         } else {
             this.lb_tokenStatus.setIcon(this.imageInvalidStatus);
             JOptionPane.showMessageDialog(this, "Unauthorized: Uncorrectly password or OTP.",
