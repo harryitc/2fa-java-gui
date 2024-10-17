@@ -72,6 +72,8 @@ public class frm_main extends javax.swing.JFrame {
     private int indexUserLogined = -1;
 
     private boolean isUserLogined = false;
+    private boolean isUserLoginedSuccess = false;
+
 
     private String currentUsername = "";
 
@@ -425,6 +427,16 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
 
+        if(this.isUserLoginedSuccess) {
+            // switch state logout -> login
+            this.isUserLoginedSuccess = false; 
+            this.txt_username.setEnabled(!this.isUserLoginedSuccess);
+            this.txt_password.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_register.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_login.setText("Login");
+                return;
+        }
+
         String username = this.txt_username.getText();
         this.currentUsername = username;
 
@@ -448,8 +460,8 @@ public class frm_main extends javax.swing.JFrame {
         this.txt_otpToken.setText(token);
         this.startTime(null);
 
-        JOptionPane.showMessageDialog(this, "Logined success.",
-                "Success", JOptionPane.OK_CANCEL_OPTION);
+        JOptionPane.showMessageDialog(this, "Please enter your token.",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
 
     }//GEN-LAST:event_btn_loginActionPerformed
 
@@ -470,7 +482,7 @@ public class frm_main extends javax.swing.JFrame {
         }
 
         if (!this.currentUsername.equals(this.txt_username.getText())) {
-            JOptionPane.showMessageDialog(this, "Field username have changed. You must be login again!\nBefore value: '" + this.currentUsername + "'.\nAfter (current) value: '" + this.txt_username.getText() + "'.",
+            JOptionPane.showMessageDialog(this, "Field username has changed. You must be login again!\nBefore value: '" + this.currentUsername + "'.\nAfter (current) value: '" + this.txt_username.getText() + "'.",
                     "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -496,6 +508,14 @@ public class frm_main extends javax.swing.JFrame {
 
         if (successful && isSameHash(hash)) {
             this.lb_tokenStatus.setIcon(this.imageValidStatus);
+            // switch state login -> logout
+            this.isUserLoginedSuccess = true;
+            this.txt_username.setEnabled(!this.isUserLoginedSuccess);
+            this.txt_password.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_register.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_login.setText("Logout");
+            JOptionPane.showMessageDialog(this, "Login successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
         } else {
             this.lb_tokenStatus.setIcon(this.imageInvalidStatus);
             JOptionPane.showMessageDialog(this, "Unauthorized: Uncorrectly password or OTP.",
@@ -615,7 +635,7 @@ public class frm_main extends javax.swing.JFrame {
         }
 
         if (isCurrentUserLoginedSeletedToDeleted()) {
-            JOptionPane.showMessageDialog(this, "Cannot delete account currently logging-in!");
+            JOptionPane.showMessageDialog(this, "Cannot delete account currently logging-in!\nUsername: '" + this.txt_username.getText() + "'");
             return;
         }
 
