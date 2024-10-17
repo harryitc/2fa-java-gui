@@ -498,7 +498,7 @@ public class frm_main extends javax.swing.JFrame {
             this.lb_tokenStatus.setIcon(this.imageValidStatus);
         } else {
             this.lb_tokenStatus.setIcon(this.imageInvalidStatus);
-            JOptionPane.showMessageDialog(this, "Lỗi xác thực: Có lẽ bạn đã nhập sai Password hoặc Mã OTP.",
+            JOptionPane.showMessageDialog(this, "Unauthorized: Uncorrectly password or OTP.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btn_checktokenActionPerformed
@@ -610,17 +610,17 @@ public class frm_main extends javax.swing.JFrame {
         // TODO add your handling code here:
         //Khi table chưa có giá trị
         if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Không có người dùng để xóa");
+            JOptionPane.showMessageDialog(this, "None of all user to delete");
             return;
         }
 
         if (isCurrentUserLoginedSeletedToDeleted()) {
-            JOptionPane.showMessageDialog(this, "Bạn không thể xóa tài khoản đang đăng nhập!");
+            JOptionPane.showMessageDialog(this, "Cannot delete account currently logging-in!");
             return;
         }
 
         //Khi checkbox được tích lên
-        int response = JOptionPane.showConfirmDialog(this, "Bạn có muốn xóa user(s) này không?", "Confirm", JOptionPane.YES_NO_OPTION);
+        int response = JOptionPane.showConfirmDialog(this, "Do you want to delete the selected user(s)?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (response != JOptionPane.YES_OPTION) {
             return;
         }
