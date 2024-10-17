@@ -11,7 +11,7 @@ package totp;
 public class FieldTable {
 
     public final static int USERNAME = 0;
-    public final static int PASSWORD = 1;
+    public final static int HASH = 1;
     public final static int SECRET_KEY = 2;
     public final static int TOKEN = 3;
     public final static int TIMER = 4;
