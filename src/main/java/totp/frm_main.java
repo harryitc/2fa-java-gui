@@ -7,6 +7,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileReader;
@@ -516,6 +517,19 @@ public class frm_main extends javax.swing.JFrame {
             this.btn_login.setText("Logout");
             JOptionPane.showMessageDialog(this, "Login successfully!",
                     "Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            BufferedWriter bw = null;
+            try {
+                bw = new BufferedWriter(
+                        new FileWriter(System.getProperty("user.dir") + "/secretkey.txt"));
+                bw.write(secret.toString());
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            frm_stepbystep_totp sbs = new frm_stepbystep_totp();
+            sbs.setVisible(successful);
+            
         } else {
             this.lb_tokenStatus.setIcon(this.imageInvalidStatus);
             JOptionPane.showMessageDialog(this, "Unauthorized: Uncorrectly password or OTP.",
@@ -915,7 +929,7 @@ public class frm_main extends javax.swing.JFrame {
             Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    //update timer in table
+//update timer in table
 
     private void updateTimerInTable() {
         TimeProvider timeProvider = new SystemTimeProvider();
