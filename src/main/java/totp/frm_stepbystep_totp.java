@@ -127,8 +127,9 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
         truncatedHash &= 0x7FFFFFFF;
         txt_token_byte.setText(String.valueOf(truncatedHash));
         
-        long token = truncatedHash %= Math.pow(10, 6);
-        txt_token.setText(String.valueOf(token));
+        truncatedHash %= Math.pow(10, DIGIT_TOKEN);
+        String token = String.format("%0" + DIGIT_TOKEN + "d", truncatedHash);
+        txt_token.setText(token);
     }
     
     private String getText(int i) {
