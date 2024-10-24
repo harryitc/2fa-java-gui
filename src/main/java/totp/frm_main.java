@@ -53,6 +53,7 @@ import org.json.JSONTokener;
 public class frm_main extends javax.swing.JFrame {
 
     Timer time, timeStamp;
+    long currentTime = 0;
     private Logger logger = Logger.getLogger(frm_main.class.getName());
     private final int TIME_STEP = 30;
 
@@ -810,8 +811,6 @@ public class frm_main extends javax.swing.JFrame {
         //restart timer when press clean botton
         this.time.start();
     }
-
-    long currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
 
     private void startTime(java.awt.event.ActionEvent evt) {
         // Hiện thời gian hay không?

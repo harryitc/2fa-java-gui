@@ -12,6 +12,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.Timer;
 import lib_totp.code.HashingAlgorithm;
+import lib_totp.time.SystemTimeProvider;
+import lib_totp.time.TimeProvider;
 import org.apache.commons.codec.binary.Base32;
 
 
@@ -26,7 +28,12 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
      */
     
     private final String fileName = System.getProperty("user.dir") + "/secretkey.txt";
-    private final int STEP = 30;
+    private final int TIMESTEP = 30;
+    private final int DIGIT_TOKEN = 6;
+    private final int DELAY_PER_SECOND = 1000;
+    private final TimeProvider timeProvider = new SystemTimeProvider();
+    Timer time;
+    long currentTime, timeStamp;
     
     public frm_stepbystep_totp() {
         initComponents();
@@ -37,22 +44,16 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
         getTime();
         
     }
- 
-    private String updatetimes() {
-        return String.valueOf((STEP-1) - (System.currentTimeMillis() / 1000L) % STEP);
-    }
-    
-    private String updateStamp() {
-        return String.valueOf((System.currentTimeMillis() / 1000L) / STEP);
-    }
    
     private void getTime() {
-        lb_time.setText(updateStamp());
-        lb_second.setText(updatetimes());
-        Timer time = new Timer(1000, (ActionEvent e) -> {
-            lb_time.setText(updateStamp());
-            lb_second.setText(updatetimes());
+        this.time = new Timer(DELAY_PER_SECOND, (ActionEvent e) -> {
             try {
+                currentTime = (TIMESTEP - (timeProvider.getTime() % TIMESTEP));
+                timeStamp = (timeProvider.getTime() / TIMESTEP);
+                
+                lb_second.setText(String.valueOf(currentTime) + "s");
+                lb_time.setText(String.valueOf(timeStamp));
+                
                 hashMAC();
             } catch (InvalidKeyException | NoSuchAlgorithmException ex) {
                 Logger.getLogger(frm_stepbystep_totp.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,9 +100,8 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     
     private void hashMAC() throws InvalidKeyException, NoSuchAlgorithmException {
         String key = txt_secretkey.getText();
-        long stamp = (System.currentTimeMillis() / 1000L) / STEP;
         
-        byte[] hash = generateHash(key, stamp);
+        byte[] hash = generateHash(key, timeStamp);
         
         String[] sb = new String[hash.length];
         
