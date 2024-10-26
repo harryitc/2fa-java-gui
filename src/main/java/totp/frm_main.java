@@ -107,7 +107,7 @@ public class frm_main extends javax.swing.JFrame {
                 String digits = "";
                 try {
                     currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
-
+                    
                     if (tableModel.getRowCount() > 0) {
                         // Hiện thời gian hay không?
                         if (isUserLogined) {
@@ -432,6 +432,15 @@ public class frm_main extends javax.swing.JFrame {
         if(this.isUserLoginedSuccess) {
             // switch state logout -> login
             this.isUserLoginedSuccess = false; 
+            this.isUserLogined = false;
+            this.indexUserLogined = -1;
+            this.lb_timer.setText("...s");
+            this.txt_otpToken.setText("######");
+            this.txt_otpauth.setText("");
+            this.txt_checktoken.setText("");
+            this.lb_tokenStatus.setIcon(null);
+            this.lb_icon.setIcon(null);
+            this.lb_qrcode.setIcon(null);
             this.txt_username.setEnabled(!this.isUserLoginedSuccess);
             this.txt_password.setEnabled(!this.isUserLoginedSuccess);
             this.btn_register.setEnabled(!this.isUserLoginedSuccess);
@@ -457,6 +466,7 @@ public class frm_main extends javax.swing.JFrame {
         this.isUserLogined = true;
         this.indexUserLogined = this.getIndexByUsername(username);
 
+        this.generateQR();
         String secretKey = this.tableModel.getValueAt(this.indexUserLogined, FieldTable.SECRET_KEY).toString();
         String token = this.getToken(secretKey);
         this.txt_otpToken.setText(token);
