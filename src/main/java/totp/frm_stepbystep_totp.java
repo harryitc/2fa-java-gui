@@ -1,5 +1,6 @@
 package totp;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -30,29 +31,33 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     private final String fileName = System.getProperty("user.dir") + "/secretkey.txt";
     private final int TIMESTEP = 30;
     private final int DIGIT_TOKEN = 6;
-    private final int DELAY_PER_SECOND = 1000;
+    private final int DELAY_PER_SECOND = 500;
     private final TimeProvider timeProvider = new SystemTimeProvider();
     Timer time;
-    long currentTime, timeStamp;
+    long currentTime, timeStep, timeStamp;
+    Font highlightFont = new Font("Helvetica Neue", Font.BOLD, 13);
+    Font normalFont = new Font("Helvetica Neue", Font.PLAIN, 13);
+    
     
     public frm_stepbystep_totp() {
         initComponents();
         
-        setLocationRelativeTo(this);
-        
         setFile();
+        
         getTime();
         
     }
    
     private void getTime() {
+        
         this.time = new Timer(DELAY_PER_SECOND, (ActionEvent e) -> {
             try {
                 currentTime = (TIMESTEP - (timeProvider.getTime() % TIMESTEP));
-                timeStamp = (timeProvider.getTime() / TIMESTEP);
-                
+                timeStep = (timeProvider.getTime() / TIMESTEP);
+                timeStamp = (timeProvider.getTime());
                 lb_second.setText(String.valueOf(currentTime) + "s");
-                lb_time.setText(String.valueOf(timeStamp));
+                lb_time.setText(String.valueOf(timeStep));
+                lb_timeStamp.setText(String.valueOf(timeStamp + "s"));
                 
                 hashMAC();
             } catch (InvalidKeyException | NoSuchAlgorithmException ex) {
@@ -99,26 +104,30 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     }
     
     private void hashMAC() throws InvalidKeyException, NoSuchAlgorithmException {
+        
         String key = txt_secretkey.getText();
         
-        byte[] hash = generateHash(key, timeStamp);
+        byte[] hash = generateHash(key, timeStep);
         
         String[] sb = new String[hash.length];
         
-        for (int i = 0; i < hash.length; i++) {
+        for (int i = 0; i < hash.length; i++)
             sb[i] = Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1).toUpperCase();
-            System.out.print(sb[i].toString() + " ");
-        }
-        System.out.println();
+
         
-        for(int i = 0; i < hash.length; i++)
-            setText(i+1, sb[i]);
+        for(int i = 0; i < hash.length; i++) {
+            setText(i, sb[i]);
+            setFont(i, normalFont);
+        }
+            
         
         int offset = hash[hash.length - 1] & 0xF;
         lb_offset_byte.setText(String.valueOf(offset));
-        for(int i = 0; i < 4; i++)
-            setText(i+21, String.valueOf(getText(offset + i)));
-       
+        for(int i = 0; i < 4; i++) {
+            setText(i+20, String.valueOf(getText(offset + i)));
+            setFont(i+20, highlightFont);
+            setFont(offset + i, highlightFont);
+        }
         long truncatedHash = 0;
         for (int i = 0; i < 4; ++i) {
             truncatedHash <<= 8;
@@ -132,79 +141,81 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
         txt_token.setText(token);
     }
     
+    
+    
     private String getText(int i) {
         String result = null;
         switch (i) {
-            case 1:
+            case 0:
                 result = txt_byte_1.getText();
                 break;
-            case 2:
+            case 1:
                 result = txt_byte_2.getText();
                 break;
-            case 3:
+            case 2:
                 result = txt_byte_3.getText();
                 break;
-            case 4:
+            case 3:
                 result = txt_byte_4.getText();
                 break;
-            case 5:
+            case 4:
                 result = txt_byte_5.getText();
                 break;
-            case 6:
+            case 5:
                 result = txt_byte_6.getText();
                 break;
-            case 7:
+            case 6:
                 result = txt_byte_7.getText();
                 break;
-            case 8:
+            case 7:
                 result = txt_byte_8.getText();
                 break;
-            case 9:
+            case 8:
                 result = txt_byte_9.getText();
                 break;
-            case 10:
+            case 9:
                 result = txt_byte_10.getText();
                 break;
-            case 11:
+            case 10:
                 result = txt_byte_11.getText();
                 break;
-            case 12:
+            case 11:
                 result = txt_byte_12.getText();
                 break;
-            case 13:
+            case 12:
                 result = txt_byte_13.getText();
                 break;
-            case 14:
+            case 13:
                 result = txt_byte_14.getText();
                 break;
-            case 15:
+            case 14:
                 result = txt_byte_15.getText();
                 break;
-            case 16:
+            case 15:
                 result = txt_byte_16.getText();
                 break;
-            case 17:
+            case 16:
                 result = txt_byte_17.getText();
                 break;
-            case 18:
+            case 17:
                 result = txt_byte_18.getText();
                 break;
-            case 19:
+            case 18:
                 result = txt_byte_19.getText();
                 break;
-            case 20:
+            case 19:
                 result = txt_byte_20.getText();
                 break;
-            case 21:
+            case 20:
                 result = txt_byte_21.getText();
                 break;
-            case 22:
+            case 21:
                 result = txt_byte_22.getText();
                 break;
-            case 23:
+            case 22:
                 result = txt_byte_23.getText();
                 break;
-            case 24:
+            case 23:
                 result = txt_byte_24.getText();
                 break;
             default:
@@ -215,83 +226,161 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     
     private void setText(int i, String value) {
         switch (i) {
-            case 1:
+            case 0:
                 txt_byte_1.setText(value);
                 break;
-            case 2:
+            case 1:
                 txt_byte_2.setText(value);
                 break;
-            case 3:
+            case 2:
                 txt_byte_3.setText(value);
                 break;
-            case 4:
+            case 3:
                 txt_byte_4.setText(value);
                 break;
-            case 5:
+            case 4:
                 txt_byte_5.setText(value);
                 break;
-            case 6:
+            case 5:
                 txt_byte_6.setText(value);
                 break;
-            case 7:
+            case 6:
                 txt_byte_7.setText(value);
                 break;
-            case 8:
+            case 7:
                 txt_byte_8.setText(value);
                 break;
-            case 9:
+            case 8:
                 txt_byte_9.setText(value);
                 break;
-            case 10:
+            case 9:
                 txt_byte_10.setText(value);
                 break;
-            case 11:
+            case 10:
                 txt_byte_11.setText(value);
                 break;
-            case 12:
+            case 11:
                 txt_byte_12.setText(value);
                 break;
-            case 13:
+            case 12:
                 txt_byte_13.setText(value);
                 break;
-            case 14:
+            case 13:
                 txt_byte_14.setText(value);
                 break;
-            case 15:
+            case 14:
                 txt_byte_15.setText(value);
                 break;
-            case 16:
+            case 15:
                 txt_byte_16.setText(value);
                 break;
-            case 17:
+            case 16:
                 txt_byte_17.setText(value);
                 break;
-            case 18:
+            case 17:
                 txt_byte_18.setText(value);
                 break;
-            case 19:
+            case 18:
                 txt_byte_19.setText(value);
                 break;
-            case 20:
+            case 19:
                 txt_byte_20.setText(value);
                 break;
-            case 21:
+            case 20:
                 txt_byte_21.setText(value);
                 break;
-            case 22:
+            case 21:
                 txt_byte_22.setText(value);
                 break;
-            case 23:
+            case 22:
                 txt_byte_23.setText(value);
                 break;
-            case 24:
+            case 23:
                 txt_byte_24.setText(value);
                 break;
             default:
                 throw new AssertionError();
         }
     }
-   
+
+    private void setFont(int i, Font value) {
+        switch (i) {
+            case 0:
+                txt_byte_1.setFont(value);
+                break;
+            case 1:
+                txt_byte_2.setFont(value);
+                break;
+            case 2:
+                txt_byte_3.setFont(value);
+                break;
+            case 3:
+                txt_byte_4.setFont(value);
+                break;
+            case 4:
+                txt_byte_5.setFont(value);
+                break;
+            case 5:
+                txt_byte_6.setFont(value);
+                break;
+            case 6:
+                txt_byte_7.setFont(value);
+                break;
+            case 7:
+                txt_byte_8.setFont(value);
+                break;
+            case 8:
+                txt_byte_9.setFont(value);
+                break;
+            case 9:
+                txt_byte_10.setFont(value);
+                break;
+            case 10:
+                txt_byte_11.setFont(value);
+                break;
+            case 11:
+                txt_byte_12.setFont(value);
+                break;
+            case 12:
+                txt_byte_13.setFont(value);
+                break;
+            case 13:
+                txt_byte_14.setFont(value);
+                break;
+            case 14:
+                txt_byte_15.setFont(value);
+                break;
+            case 15:
+                txt_byte_16.setFont(value);
+                break;
+            case 16:
+                txt_byte_17.setFont(value);
+                break;
+            case 17:
+                txt_byte_18.setFont(value);
+                break;
+            case 18:
+                txt_byte_19.setFont(value);
+                break;
+            case 19:
+                txt_byte_20.setFont(value);
+                break;
+            case 20:
+                txt_byte_21.setFont(value);
+                break;
+            case 21:
+                txt_byte_22.setFont(value);
+                break;
+            case 22:
+                txt_byte_23.setFont(value);
+                break;
+            case 23:
+                txt_byte_24.setFont(value);
+                break;
+            default:
+                throw new AssertionError();
+        }
+    }
     
     
     
@@ -306,7 +395,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     private void initComponents() {
 
         lb_Title = new javax.swing.JLabel();
-        lb_Timestamp = new javax.swing.JLabel();
+        lb_Timestep = new javax.swing.JLabel();
         lb_time = new javax.swing.JLabel();
         lb_secretkey = new javax.swing.JLabel();
         txt_secretkey = new javax.swing.JTextField();
@@ -343,13 +432,20 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
         txt_token = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         lb_second = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        lb_timeStamp = new javax.swing.JLabel();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
+                formWindowClosed(evt);
+            }
+        });
 
         lb_Title.setFont(new java.awt.Font("Helvetica Neue", 1, 18)); // NOI18N
         lb_Title.setText("STEP BY STEP - TOTP");
 
-        lb_Timestamp.setText("Timestamp:");
+        lb_Timestep.setText("TimeStep:");
 
         lb_time.setText("TIME");
 
@@ -407,7 +503,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
 
         lb_offset_byte.setText("XX");
 
-        lb_formular_1.setText("+0x 7F      FF       FF       FF");
+        lb_formular_1.setText("+ 0x 7FFFFFFF");
 
         lb_mod.setText(") Mod 10^6");
 
@@ -419,6 +515,10 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
 
         lb_second.setText("Second");
 
+        jLabel2.setText("|");
+
+        lb_timeStamp.setText("TimeStamp");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -426,64 +526,67 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(lb_formular)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(lb_Title)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(lb_Timestamp)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(lb_time)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(jLabel1)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(lb_second))
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addComponent(lb_secretkey)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_secretkey))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(txt_byte_1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_2, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_3, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_4, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_5, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_6, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_7, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_8, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_9, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_10, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(txt_token_byte, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(lb_mod))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(txt_byte_21, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_22, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_23, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(txt_byte_24, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(lb_offset)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                    .addComponent(lb_offset_byte))))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(lb_formular_1)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txt_token, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(lb_formular)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lb_formular_1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txt_token, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(lb_Title)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lb_Timestep)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lb_time)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lb_second)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lb_timeStamp))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(lb_secretkey)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_secretkey))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txt_byte_1, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_2, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_3, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_4, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_5, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_6, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_7, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_8, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_9, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_10, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txt_token_byte, javax.swing.GroupLayout.PREFERRED_SIZE, 158, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lb_mod))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txt_byte_21, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_22, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_23, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txt_byte_24, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lb_offset)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lb_offset_byte))))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(txt_byte_11, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -513,10 +616,12 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
                 .addComponent(lb_Title)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lb_Timestamp)
+                    .addComponent(lb_Timestep)
                     .addComponent(lb_time)
                     .addComponent(jLabel1)
-                    .addComponent(lb_second))
+                    .addComponent(lb_second)
+                    .addComponent(jLabel2)
+                    .addComponent(lb_timeStamp))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lb_secretkey)
@@ -558,7 +663,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
                             .addComponent(txt_byte_21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txt_byte_23, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(lb_formular_1)
+                        .addComponent(lb_formular_1, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txt_token_byte, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -570,6 +675,10 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+        this.time.stop();
+    }//GEN-LAST:event_formWindowClosed
 
     
     /**
@@ -609,7 +718,8 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel lb_Timestamp;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel lb_Timestep;
     private javax.swing.JLabel lb_Title;
     private javax.swing.JLabel lb_formular;
     private javax.swing.JLabel lb_formular_1;
@@ -619,6 +729,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     private javax.swing.JLabel lb_second;
     private javax.swing.JLabel lb_secretkey;
     private javax.swing.JLabel lb_time;
+    private javax.swing.JLabel lb_timeStamp;
     private javax.swing.JTextField txt_byte_1;
     private javax.swing.JTextField txt_byte_10;
     private javax.swing.JTextField txt_byte_11;
