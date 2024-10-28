@@ -1,5 +1,6 @@
 package totp;
 
+import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
@@ -31,7 +32,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
     private final String fileName = System.getProperty("user.dir") + "/secretkey.txt";
     private final int TIMESTEP = 30;
     private final int DIGIT_TOKEN = 6;
-    private final int DELAY_PER_SECOND = 500;
+    private final int DELAY_PER_SECOND = 1000;
     private final TimeProvider timeProvider = new SystemTimeProvider();
     Timer time;
     long currentTime, timeStep, timeStamp;
@@ -55,9 +56,9 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
                 currentTime = (TIMESTEP - (timeProvider.getTime() % TIMESTEP));
                 timeStep = (timeProvider.getTime() / TIMESTEP);
                 timeStamp = (timeProvider.getTime());
-                lb_second.setText(String.valueOf(currentTime) + "s");
-                lb_time.setText(String.valueOf(timeStep));
-                lb_timeStamp.setText(String.valueOf(timeStamp + "s"));
+                this.lb_second.setText(String.valueOf(currentTime) + "s");
+                this.lb_time.setText(String.valueOf(timeStep));
+                this.lb_timeStamp.setText(String.valueOf(timeStamp + "s"));
                 
                 hashMAC();
             } catch (InvalidKeyException | NoSuchAlgorithmException ex) {
@@ -65,7 +66,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
             }
             
         });
-        time.start();
+        this.time.start();
     }
     
     private void setFile() {
@@ -83,7 +84,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
             System.out.println("Secret Key: " + sb);
             String str = sb.toString();
             
-            txt_secretkey.setText(str.toUpperCase());
+            this.txt_secretkey.setText(str.toUpperCase());
             
         } catch (IOException e) {
         }
@@ -122,7 +123,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
             
         
         int offset = hash[hash.length - 1] & 0xF;
-        lb_offset_byte.setText(String.valueOf(offset));
+        this.lb_offset_byte.setText(String.valueOf(offset));
         for(int i = 0; i < 4; i++) {
             setText(i+20, String.valueOf(getText(offset + i)));
             setFont(i+20, highlightFont);
@@ -134,11 +135,11 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
             truncatedHash |= (hash[offset + i] & 0xFF);
         }
         truncatedHash &= 0x7FFFFFFF;
-        txt_token_byte.setText(String.valueOf(truncatedHash));
+        this.txt_token_byte.setText(String.valueOf(truncatedHash));
         
         truncatedHash %= Math.pow(10, DIGIT_TOKEN);
         String token = String.format("%0" + DIGIT_TOKEN + "d", truncatedHash);
-        txt_token.setText(token);
+        this.txt_token.setText(token);
     }
     
     
@@ -445,7 +446,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
         lb_Title.setFont(new java.awt.Font("Helvetica Neue", 1, 18)); // NOI18N
         lb_Title.setText("STEP BY STEP - TOTP");
 
-        lb_Timestep.setText("TimeStep:");
+        lb_Timestep.setText("Time Step:");
 
         lb_time.setText("TIME");
 
@@ -505,6 +506,8 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
 
         lb_formular_1.setText("+ 0x 7FFFFFFF");
 
+        txt_token_byte.setEditable(false);
+
         lb_mod.setText(") Mod 10^6");
 
         lb_formular.setText("(");
@@ -537,7 +540,7 @@ public class frm_stepbystep_totp extends javax.swing.JFrame {
                             .addComponent(lb_Title)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(lb_Timestep)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(lb_time)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel1)
