@@ -27,6 +27,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
+
 import lib_totp.code.CodeGenerator;
 import lib_totp.code.CodeVerifier;
 import lib_totp.code.DefaultCodeGenerator;
@@ -41,6 +42,7 @@ import lib_totp.secret.SecretGenerator;
 import lib_totp.time.SystemTimeProvider;
 import lib_totp.time.TimeProvider;
 import lib_totp.util.Utils;
+
 import org.apache.commons.codec.binary.Base32;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -52,43 +54,54 @@ import org.json.JSONTokener;
  */
 public class frm_main extends javax.swing.JFrame {
 
-    Timer time, timeStamp;
-    long currentTime = 0;
+    // Author project
+    private final String AUTHOR_PROJECT = "AE_Software";
+    
+    // Logger
     private Logger logger = Logger.getLogger(frm_main.class.getName());
-    private final int TIME_STEP = 30;
-
+    
+    // Size image QR-Code
     private final int MAX_WIDTH_QRCODE = 200;
     private final int MAX_HEIGHT_QRCODE = 200;
-
+    
+    // List of fields save into file
     private final String[] FIELDS_JSON = {"Username", "Hash", "Secret Key"};
 
+    // Default path
     private String DEFAULT_PATH_FILE_NAME = System.getProperty("user.dir");
     private String FILENAME = "tableData.json";
+    
+    private final TimeProvider timeProvider = new SystemTimeProvider(); // Time system with lib TOTP
+    private final int DELAY_PER_SECOND = 1000; // Loop every time 
+    private final int DIGIT_TOKEN = 6; // 6 digits token when generate from hash
+    private final int TIME_STEP = 30; // Default 30s to generate new token
+    
+    // Show time on view
+    Timer time, timeStamp;
+    long currentTime = 0;
+    
+    private String currentUsername = ""; // Username currently logging-in
+    private int indexUserLogined = -1; // Save position user currently logging-in
+    private boolean isUserLogined = false; // Check user is logined?
+    private boolean isUserLoginedSuccess = false; // Check user is logined successfully?
 
-    private final TimeProvider timeProvider = new SystemTimeProvider();
-
-    private final int DELAY_PER_SECOND = 1000;
-
-    private final int DIGIT_TOKEN = 6;
-
-    private int indexUserLogined = -1;
-
-    private boolean isUserLogined = false;
-    private boolean isUserLoginedSuccess = false;
-
-
-    private String currentUsername = "";
-
+    // List variables store images
     private final ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("src/assets/icons/valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("src/assets/icons/invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageDeleteStatus = new ImageIcon(new ImageIcon("src/assets/icons/delete.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageClearStatus = new ImageIcon(new ImageIcon("src/assets/icons/clear.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageCheckStatus = new ImageIcon(new ImageIcon("src/assets/icons/check.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageIconQrcode = new ImageIcon(new ImageIcon("src/assets/icons/logo-big.png").getImage().getScaledInstance(40, 45, Image.SCALE_SMOOTH));
+    
+    // Replace fixed table with dynamic table
     private final DefaultTableModel tableModel;
+
+    // default checklist has no selection
+    private boolean isCheckedAll = false;
 
     public frm_main() {
         initComponents();
+
         this.tableModel = (DefaultTableModel) this.tb_accountpool.getModel();
 
         this.lb_qrcode.setText("");
@@ -653,7 +666,7 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
-        //Khi table chưa có giá trị
+        // Khi table chưa có giá trị
         if (tableModel.getRowCount() == 0) {
             JOptionPane.showMessageDialog(this, "None of all user to delete");
             return;
@@ -664,7 +677,7 @@ public class frm_main extends javax.swing.JFrame {
             return;
         }
 
-        //Khi checkbox được tích lên
+        // Khi checkbox được tích lên
         int response = JOptionPane.showConfirmDialog(this, "Do you want to delete the selected user(s)?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (response != JOptionPane.YES_OPTION) {
             return;
@@ -705,8 +718,6 @@ public class frm_main extends javax.swing.JFrame {
         return false;
     }
 
-//Default checked list = False
-    private boolean isCheckedAll = false;
 
     private void updateCheckBox() {
         int countTrue = 0;
@@ -776,28 +787,6 @@ public class frm_main extends javax.swing.JFrame {
                 new frm_main().setVisible(true);
             }
         });
-    }
-
-    public void updateTableWithNewData(JTable table, DefaultTableModel newTableModel) {
-        // Lấy model hiện tại của bảng
-        DefaultTableModel currentTableModel = (DefaultTableModel) table.getModel();
-
-        // Xóa tất cả hàng hiện tại
-        currentTableModel.setRowCount(0);
-
-        // Duyệt qua các hàng trong model mới
-        for (int i = 0; i < newTableModel.getRowCount(); i++) {
-            // Tạo mảng Object để chứa dữ liệu hàng mới
-            Object[] rowData = new Object[newTableModel.getColumnCount()];
-
-            // Lấy dữ liệu từ từng hàng trong model mới
-            for (int j = 0; j < newTableModel.getColumnCount(); j++) {
-                rowData[j] = newTableModel.getValueAt(i, j);
-            }
-
-            // Thêm hàng mới vào model hiện tại
-            currentTableModel.addRow(rowData);
-        }
     }
 
     private void reset_form() {
@@ -894,9 +883,8 @@ public class frm_main extends javax.swing.JFrame {
         QrData data = new QrData.Builder()
                 .label(this.txt_username.getText())
                 .secret(this.tableModel.getValueAt(this.tableModel.getRowCount() - 1, FieldTable.SECRET_KEY).toString())
-                //                .secret(this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString())
-                .issuer("AeSoftware")
-                .algorithm(HashingAlgorithm.SHA1) // More on this below
+                .issuer(AUTHOR_PROJECT)
+                .algorithm(HashingAlgorithm.SHA1)
                 .digits(DIGIT_TOKEN)
                 .period(TIME_STEP)
                 .build();
@@ -938,7 +926,6 @@ public class frm_main extends javax.swing.JFrame {
             Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-//update timer in table
 
     private void updateTimerInTable() {
         TimeProvider timeProvider = new SystemTimeProvider();
@@ -947,7 +934,6 @@ public class frm_main extends javax.swing.JFrame {
             this.tableModel.setValueAt(String.valueOf(currentTime) + "s", i, 4);
         }
     }
-//update token in table
 
     private void updateTokenInTable() {
 
