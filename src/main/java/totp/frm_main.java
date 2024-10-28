@@ -22,12 +22,12 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
+
 import lib_totp.code.CodeGenerator;
 import lib_totp.code.CodeVerifier;
 import lib_totp.code.DefaultCodeGenerator;
@@ -42,6 +42,7 @@ import lib_totp.secret.SecretGenerator;
 import lib_totp.time.SystemTimeProvider;
 import lib_totp.time.TimeProvider;
 import lib_totp.util.Utils;
+
 import org.apache.commons.codec.binary.Base32;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -53,37 +54,54 @@ import org.json.JSONTokener;
  */
 public class frm_main extends javax.swing.JFrame {
 
-    Timer time, timeStamp;
+    // Author project
+    private final String AUTHOR_PROJECT = "AE_Software";
+    
+    // Logger
     private Logger logger = Logger.getLogger(frm_main.class.getName());
-    private final int TIME_STEP = 30;
-
+    
+    // Size image QR-Code
     private final int MAX_WIDTH_QRCODE = 200;
     private final int MAX_HEIGHT_QRCODE = 200;
+    
+    // List of fields save into file
+    private final String[] FIELDS_JSON = {"Username", "Hash", "Secret Key"};
 
-    private final String[] FIELDS_JSON = {"Username", "Password", "Secret Key"};
-
+    // Default path
     private String DEFAULT_PATH_FILE_NAME = System.getProperty("user.dir");
     private String FILENAME = "tableData.json";
+    
+    private final TimeProvider timeProvider = new SystemTimeProvider(); // Time system with lib TOTP
+    private final int DELAY_PER_SECOND = 1000; // Loop every time 
+    private final int DIGIT_TOKEN = 6; // 6 digits token when generate from hash
+    private final int TIME_STEP = 30; // Default 30s to generate new token
+    
+    // Show time on view
+    Timer time, timeStamp;
+    long currentTime = 0;
+    
+    private String currentUsername = ""; // Username currently logging-in
+    private int indexUserLogined = -1; // Save position user currently logging-in
+    private boolean isUserLogined = false; // Check user is logined?
+    private boolean isUserLoginedSuccess = false; // Check user is logined successfully?
 
-    private final TimeProvider timeProvider = new SystemTimeProvider();
-
-    private final int DELAY_PER_SECOND = 1000;
-
-    private final int DIGIT_TOKEN = 6;
-
-    private int indexUserLogined = -1;
-
-    private boolean isUserLogined = false;
-
+    // List variables store images
     private final ImageIcon imageValidStatus = new ImageIcon(new ImageIcon("src/assets/icons/valid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageInvalidStatus = new ImageIcon(new ImageIcon("src/assets/icons/invalid.png").getImage().getScaledInstance(32, 32, Image.SCALE_DEFAULT));
     private final ImageIcon imageDeleteStatus = new ImageIcon(new ImageIcon("src/assets/icons/delete.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageClearStatus = new ImageIcon(new ImageIcon("src/assets/icons/clear.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
     private final ImageIcon imageCheckStatus = new ImageIcon(new ImageIcon("src/assets/icons/check.png").getImage().getScaledInstance(24, 24, Image.SCALE_DEFAULT));
+    private final ImageIcon imageIconQrcode = new ImageIcon(new ImageIcon("src/assets/icons/logo-big.png").getImage().getScaledInstance(40, 45, Image.SCALE_SMOOTH));
+    
+    // Replace fixed table with dynamic table
     private final DefaultTableModel tableModel;
+
+    // default checklist has no selection
+    private boolean isCheckedAll = false;
 
     public frm_main() {
         initComponents();
+
         this.tableModel = (DefaultTableModel) this.tb_accountpool.getModel();
 
         this.lb_qrcode.setText("");
@@ -94,12 +112,6 @@ public class frm_main extends javax.swing.JFrame {
         this.btn_clean.setIcon(imageClearStatus);
         this.btn_checkall.setIcon(imageCheckStatus);
 
-//        try {
-//            Image img = ImageIO.read(getClass().getResource("resources/water.bmp"));
-//            this.btn_delete.setIcon(this.imageDeleteStatus);
-//        } catch (Exception ex) {
-//            System.out.println(ex);
-//        }
         this.txt_directory.setText("File path");
 
         this.time = new Timer(DELAY_PER_SECOND, new ActionListener() {
@@ -108,7 +120,7 @@ public class frm_main extends javax.swing.JFrame {
                 String digits = "";
                 try {
                     currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
-
+                    
                     if (tableModel.getRowCount() > 0) {
                         // Hiện thời gian hay không?
                         if (isUserLogined) {
@@ -150,6 +162,7 @@ public class frm_main extends javax.swing.JFrame {
         txt_password = new javax.swing.JPasswordField();
         btn_login = new javax.swing.JButton();
         btn_register = new javax.swing.JButton();
+        lb_icon = new javax.swing.JLabel();
         lb_qrcode = new javax.swing.JLabel();
         txt_checktoken = new javax.swing.JTextField();
         lb_checkOTP = new javax.swing.JLabel();
@@ -214,6 +227,9 @@ public class frm_main extends javax.swing.JFrame {
         });
         getContentPane().add(btn_register, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 161, -1, -1));
 
+        lb_icon.setPreferredSize(new java.awt.Dimension(60, 60));
+        getContentPane().add(lb_icon, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 110, 40, 40));
+
         lb_qrcode.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lb_qrcode.setText("QRCode Is HERE!!!");
         lb_qrcode.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -233,7 +249,7 @@ public class frm_main extends javax.swing.JFrame {
         txt_otpToken.setFont(new java.awt.Font("Helvetica Neue", 1, 48)); // NOI18N
         txt_otpToken.setHorizontalAlignment(javax.swing.JTextField.CENTER);
         txt_otpToken.setText("######");
-        getContentPane().add(txt_otpToken, new org.netbeans.lib.awtextra.AbsoluteConstraints(348, 271, 190, 78));
+        getContentPane().add(txt_otpToken, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 270, 190, 78));
 
         btn_copy.setFont(new java.awt.Font("Segoe UI", 0, 10)); // NOI18N
         btn_copy.setText("Copy");
@@ -242,7 +258,7 @@ public class frm_main extends javax.swing.JFrame {
                 btn_copyActionPerformed(evt);
             }
         });
-        getContentPane().add(btn_copy, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 250, 60, 20));
+        getContentPane().add(btn_copy, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 250, 70, 20));
 
         lb_OTPtoken.setText("OTP Token");
         getContentPane().add(lb_OTPtoken, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 250, -1, -1));
@@ -252,7 +268,7 @@ public class frm_main extends javax.swing.JFrame {
 
             },
             new String [] {
-                "Username", "Password", "Secret Key", "Token", "S", ""
+                "Username", "Hash", "Secret Key", "Token", "S", ""
             }
         ) {
             Class[] types = new Class [] {
@@ -397,71 +413,80 @@ public class frm_main extends javax.swing.JFrame {
             return;
         }
 
-        // Mặc định là đăng ký xong là phải login.
-        this.isUserLogined = false;
-
-        this.lb_qrcode.setIcon(null);
         this.txt_otpToken.setText("######");
         this.lb_timer.setText("...s");
-        this.txt_otpauth.setText("");
 
         SecretGenerator secretGenerator = new DefaultSecretGenerator();
+        String secret = secretGenerator.generate();
+
+        // get hash
+        String hash = SHA.Hash(password, secret);
 
         Object[] rowData = new Object[this.tableModel.getColumnCount()];
         int col = 0;
         rowData[col++] = username;
-        rowData[col++] = password;
-        String secret = secretGenerator.generate();
+        rowData[col++] = hash;
         rowData[col++] = secret;
-
         rowData[FieldTable.CHECKBOX] = false;
-
         rowData[col++] = this.getToken(secret);
-
         this.tableModel.addRow(rowData);
+
+        this.isUserLogined = false;
+        this.indexUserLogined = -1;
+
+        this.generateQR();
 
         JOptionPane.showMessageDialog(this, "Register successfully!",
                 "Success", JOptionPane.INFORMATION_MESSAGE);
-
-        this.lb_tokenStatus.setIcon(null);
-
     }//GEN-LAST:event_btn_registerActionPerformed
 
     private void btn_loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_loginActionPerformed
 
-        if (this.txt_username.getText().isEmpty()) {
+        if(this.isUserLoginedSuccess) {
+            // switch state logout -> login
+            this.isUserLoginedSuccess = false; 
+            this.isUserLogined = false;
+            this.indexUserLogined = -1;
+            this.lb_timer.setText("...s");
+            this.txt_otpToken.setText("######");
+            this.txt_otpauth.setText("");
+            this.txt_checktoken.setText("");
+            this.lb_tokenStatus.setIcon(null);
+            this.lb_icon.setIcon(null);
+            this.lb_qrcode.setIcon(null);
+            this.txt_username.setEnabled(!this.isUserLoginedSuccess);
+            this.txt_password.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_register.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_login.setText("Login");
+                return;
+        }
+
+        String username = this.txt_username.getText();
+        this.currentUsername = username;
+
+        if (username.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Username cannot be empty.",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (!this.isUserInDatabase(this.txt_username.getText())) {
+        if (!this.isUserInDatabase(username)) {
             JOptionPane.showMessageDialog(this, "Username is not registered. Please register",
                     "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        for (int i = 0; i < this.tableModel.getRowCount(); i++) {
-            String username = this.tableModel.getValueAt(i, FieldTable.USERNAME).toString();
-            String password = this.tableModel.getValueAt(i, FieldTable.PASSWORD).toString();
-            if (username.equals(this.txt_username.getText()) && password.equals(new String(this.txt_password.getPassword()))) {
-                this.isUserLogined = true;
-                this.indexUserLogined = i;
-                this.btn_copy.setEnabled(true);
-                this.generateQR();
+        this.isUserLogined = true;
+        this.indexUserLogined = this.getIndexByUsername(username);
 
-                this.txt_otpToken.setText(this.getToken(this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString()));
-                this.startTime(null);
-                JOptionPane.showMessageDialog(this, "Logined success.",
-                        "Success", JOptionPane.OK_CANCEL_OPTION);
-                return;
-            }
-        }
+        this.generateQR();
+        String secretKey = this.tableModel.getValueAt(this.indexUserLogined, FieldTable.SECRET_KEY).toString();
+        String token = this.getToken(secretKey);
+        this.txt_otpToken.setText(token);
+        this.startTime(null);
 
-        this.lb_tokenStatus.setIcon(null);
-
-        JOptionPane.showMessageDialog(this, "Username and Passowrd is not correct.",
-                "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Please enter your token.",
+                "Success", JOptionPane.INFORMATION_MESSAGE);
 
     }//GEN-LAST:event_btn_loginActionPerformed
 
@@ -475,8 +500,21 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_checktokenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_checktokenActionPerformed
 
-        if (!this.isUserLogined) {
-            JOptionPane.showMessageDialog(this, "You must be login before check token!",
+        if (!isUserLogined) {
+            JOptionPane.showMessageDialog(this, "You must be login before check token",
+                    "Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!this.currentUsername.equals(this.txt_username.getText())) {
+            JOptionPane.showMessageDialog(this, "Field username has changed. You must be login again!\nBefore value: '" + this.currentUsername + "'.\nAfter (current) value: '" + this.txt_username.getText() + "'.",
+                    "Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        //Checktoken text box cant not be empty, otherwise it will pop up an error message
+        if (this.txt_checktoken.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "The token can't not be empty",
                     "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -484,47 +522,49 @@ public class frm_main extends javax.swing.JFrame {
         // get n-digits code.
         CodeGenerator codeGenerator = new DefaultCodeGenerator();
         CodeVerifier codeVerifier = new DefaultCodeVerifier(codeGenerator, this.timeProvider);
-        //Checktoken text box cant not be empty, otherwise it will pop up an error message
-        if (this.txt_checktoken.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "The token can't not be empty",
-                    "Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
         // secret = the shared secret for the user
         // code = the code submitted by the user
-        boolean successful = codeVerifier.isValidCode(this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString(), this.txt_checktoken.getText());
+        String secret = this.tableModel.getValueAt(indexUserLogined, FieldTable.SECRET_KEY).toString();
+        String code = this.txt_checktoken.getText();
+        boolean successful = codeVerifier.isValidCode(secret, code);
 
-        if (successful) {
+        String password = new String(this.txt_password.getPassword());
+        String hash = SHA.Hash(password, secret);
+
+        if (successful && isSameHash(hash)) {
             this.lb_tokenStatus.setIcon(this.imageValidStatus);
+            // switch state login -> logout
+            this.isUserLoginedSuccess = true;
+            this.txt_username.setEnabled(!this.isUserLoginedSuccess);
+            this.txt_password.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_register.setEnabled(!this.isUserLoginedSuccess);
+            this.btn_login.setText("Logout");
+            JOptionPane.showMessageDialog(this, "Login successfully!",
+                    "Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            BufferedWriter bw = null;
+            try {
+                bw = new BufferedWriter(
+                        new FileWriter(System.getProperty("user.dir") + "/secretkey.txt"));
+                bw.write(secret.toString());
+                bw.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            frm_stepbystep_totp sbs = new frm_stepbystep_totp();
+            sbs.setVisible(successful);
+            
         } else {
             this.lb_tokenStatus.setIcon(this.imageInvalidStatus);
+            JOptionPane.showMessageDialog(this, "Unauthorized: Uncorrectly password or OTP.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btn_checktokenActionPerformed
 
     private void btn_openFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_openFileActionPerformed
 
-        /*
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Open FIle containing Ciphertext");
-        int userSelection = fileChooser.showOpenDialog(this);
-        if (userSelection == JFileChooser.APPROVE_OPTION) {
-            File fileToOpen = fileChooser.getSelectedFile();
-            try (BufferedReader reader = new BufferedReader(new FileReader(fileToOpen))) {
-                StringBuilder ciphertextBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    ciphertextBuilder.append(line);
-                }
-                String ciphertext = ciphertextBuilder.toString().trim();
-                txt_ciphertext.setText(ciphertext);
-            } catch (IOException e) {
-                JOptionPane.showMessageDialog(this, "Error opening file: " + e.getMessage(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-         */
         JFileChooser fileChooser = new JFileChooser(this.DEFAULT_PATH_FILE_NAME);
-        fileChooser.setDialogTitle("Open FIle containing Ciphertext");
+        fileChooser.setDialogTitle("Open File TOTP");
         int userSelection = fileChooser.showOpenDialog(this);
         if (userSelection == JFileChooser.APPROVE_OPTION) {
             File fileToOpen = fileChooser.getSelectedFile();
@@ -539,9 +579,6 @@ public class frm_main extends javax.swing.JFrame {
                     return;
                 }
 
-                // Lấy model hiện tại của JTable
-                //            String[] columnNames = this.tableModel.get;
-                // Duyệt qua từng hàng (JSONObject) trong JSONArray
                 int indexSameUsername = 0;
 
                 for (int i = 0; i < jsonArray.length(); i++) {
@@ -572,9 +609,6 @@ public class frm_main extends javax.swing.JFrame {
                             "Success", JOptionPane.INFORMATION_MESSAGE);
                 }
 
-                // Thiết lập model mới cho JTable
-//            this.tb_accountpool.set(tableModel);
-//            this.updateTableWithNewData(this.tb_accountpool, tableModel);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -586,24 +620,7 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_saveFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_saveFileActionPerformed
 
-//        try {
-//            BufferedWriter bw = null;
-//            String filename = DEFAULT_PATH_FILE_NAME;
-//        //            String banMa = txt_banma.getText();
-//            bw = new BufferedWriter(new FileWriter(filename));
-////            bw.write(banMa);
-//            bw.close();
-//            JOptionPane.showMessageDialog(null, "Da luu file thanh cong");
-//        } catch (IOException e) {
-//            Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, e);
-//        }
-//        if (this.tableModel.getRowCount() == 0) {
-//            JOptionPane.showMessageDialog(this, "No data to save!",
-//                    "Info", JOptionPane.OK_OPTION);
-//            return;
-//        }
         JSONArray jsonArray = new JSONArray();
-//        TableModel model = this.tableModel;
 
         // Duyệt qua các hàng và cột trong JTable
         for (int row = 0; row < this.tableModel.getRowCount(); row++) {
@@ -642,10 +659,6 @@ public class frm_main extends javax.swing.JFrame {
             }
         }
 
-        // Ghi JSON ra file
-//        
-//        }
-
     }//GEN-LAST:event_btn_saveFileActionPerformed
 
     private void tb_accountpoolMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tb_accountpoolMouseClicked
@@ -653,28 +666,35 @@ public class frm_main extends javax.swing.JFrame {
 
     private void btn_deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn_deleteActionPerformed
         // TODO add your handling code here:
-        //Khi table chưa có giá trị
+        // Khi table chưa có giá trị
         if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Không có người dùng để xóa");
+            JOptionPane.showMessageDialog(this, "None of all user to delete");
             return;
         }
 
         if (isCurrentUserLoginedSeletedToDeleted()) {
-            JOptionPane.showMessageDialog(this, "Bạn không thể xóa tài khoản đang đăng nhập!");
+            JOptionPane.showMessageDialog(this, "Cannot delete account currently logging-in!\nUsername: '" + this.txt_username.getText() + "'");
             return;
         }
 
-        //Khi checkbox được tích lên
-        int response = JOptionPane.showConfirmDialog(this, "Bạn có muốn xóa user(s) này không?", "Confirm", JOptionPane.YES_NO_OPTION);
+        // Khi checkbox được tích lên
+        int response = JOptionPane.showConfirmDialog(this, "Do you want to delete the selected user(s)?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (response != JOptionPane.YES_OPTION) {
             return;
         }
 
+        Boolean hasDataToDeleted = false;
         for (int i = tableModel.getRowCount() - 1; i >= 0; i--) {
             Boolean isChecked = (Boolean) tableModel.getValueAt(i, FieldTable.CHECKBOX);
             if (isChecked != null && isChecked) {
+                hasDataToDeleted = true;
                 tableModel.removeRow(i);  // Xóa dòng đã chọn
             }
+        }
+
+        // Khi xóa hết dữ liệu trong table thì tự động reset lại form.
+        if (hasDataToDeleted && this.tableModel.getRowCount() == 0) {
+            this.reset_form();
         }
 
     }//GEN-LAST:event_btn_deleteActionPerformed
@@ -698,8 +718,6 @@ public class frm_main extends javax.swing.JFrame {
         return false;
     }
 
-//Default checked list = False
-    private boolean isCheckedAll = false;
 
     private void updateCheckBox() {
         int countTrue = 0;
@@ -771,28 +789,6 @@ public class frm_main extends javax.swing.JFrame {
         });
     }
 
-    public void updateTableWithNewData(JTable table, DefaultTableModel newTableModel) {
-        // Lấy model hiện tại của bảng
-        DefaultTableModel currentTableModel = (DefaultTableModel) table.getModel();
-
-        // Xóa tất cả hàng hiện tại
-        currentTableModel.setRowCount(0);
-
-        // Duyệt qua các hàng trong model mới
-        for (int i = 0; i < newTableModel.getRowCount(); i++) {
-            // Tạo mảng Object để chứa dữ liệu hàng mới
-            Object[] rowData = new Object[newTableModel.getColumnCount()];
-
-            // Lấy dữ liệu từ từng hàng trong model mới
-            for (int j = 0; j < newTableModel.getColumnCount(); j++) {
-                rowData[j] = newTableModel.getValueAt(i, j);
-            }
-
-            // Thêm hàng mới vào model hiện tại
-            currentTableModel.addRow(rowData);
-        }
-    }
-
     private void reset_form() {
         final String EMPTY = "";
         this.txt_password.setText(EMPTY);
@@ -815,16 +811,24 @@ public class frm_main extends javax.swing.JFrame {
         this.time.start();
     }
 
-    long currentTime = TIME_STEP - (timeProvider.getTime() % TIME_STEP);
-
     private void startTime(java.awt.event.ActionEvent evt) {
-
         // Hiện thời gian hay không?
         if (this.isUserLogined) {
             this.lb_timer.setText(String.valueOf(TIME_STEP - (timeProvider.getTime() % TIME_STEP)) + "s");
         }
+    }
 
-//        userTimer.start();
+    private Boolean isSameHash(String hash) {
+        return hash.equals(this.tableModel.getValueAt(this.indexUserLogined, FieldTable.HASH).toString());
+    }
+
+    private int getIndexByUsername(String username) {
+        for (int i = 0; i < this.tableModel.getRowCount(); i++) {
+            if (username.equals(this.tableModel.getValueAt(i, FieldTable.USERNAME).toString())) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -877,10 +881,10 @@ public class frm_main extends javax.swing.JFrame {
 
     private void generateQR() {
         QrData data = new QrData.Builder()
-                .label(new String(this.txt_password.getPassword()))
-                .secret(this.tableModel.getValueAt(indexUserLogined, 2).toString())
-                .issuer(this.txt_username.getText())
-                .algorithm(HashingAlgorithm.SHA1) // More on this below
+                .label(this.txt_username.getText())
+                .secret(this.tableModel.getValueAt(this.tableModel.getRowCount() - 1, FieldTable.SECRET_KEY).toString())
+                .issuer(AUTHOR_PROJECT)
+                .algorithm(HashingAlgorithm.SHA1)
                 .digits(DIGIT_TOKEN)
                 .period(TIME_STEP)
                 .build();
@@ -911,6 +915,9 @@ public class frm_main extends javax.swing.JFrame {
 
                 this.lb_qrcode.setIcon(imageIcon);
 
+                // set icon in the middle of the qrcode
+                this.lb_icon.setIcon(this.imageIconQrcode);
+
             } catch (IOException ex) {
                 Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -919,7 +926,6 @@ public class frm_main extends javax.swing.JFrame {
             Logger.getLogger(frm_main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    //update timer in table
 
     private void updateTimerInTable() {
         TimeProvider timeProvider = new SystemTimeProvider();
@@ -928,19 +934,18 @@ public class frm_main extends javax.swing.JFrame {
             this.tableModel.setValueAt(String.valueOf(currentTime) + "s", i, 4);
         }
     }
-//update token in table
 
     private void updateTokenInTable() {
 
         for (int i = 0; i < this.tableModel.getRowCount(); i++) {
-            this.tableModel.setValueAt(this.getToken(this.tableModel.getValueAt(i, FieldTable.SECRET_KEY).toString()), i, 3);
+            this.tableModel.setValueAt(this.getToken(this.tableModel.getValueAt(i, FieldTable.SECRET_KEY).toString()), i, FieldTable.TOKEN);
         }
     }
 
     private boolean isExistedUsernameInTable(String username) {
 
         for (int i = 0; i < this.tableModel.getRowCount(); i++) {
-            if (username.equals(this.tableModel.getValueAt(i, 0))) {
+            if (username.equals(this.tableModel.getValueAt(i, FieldTable.USERNAME))) {
                 return true;
             }
         }
@@ -965,6 +970,7 @@ public class frm_main extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JLabel lb_OTPtoken;
     private javax.swing.JLabel lb_checkOTP;
+    private javax.swing.JLabel lb_icon;
     private javax.swing.JLabel lb_otpauth;
     private javax.swing.JLabel lb_password;
     private javax.swing.JLabel lb_qrcode;
