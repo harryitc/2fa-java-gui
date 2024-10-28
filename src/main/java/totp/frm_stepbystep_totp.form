@@ -41,7 +41,7 @@
                           <Component id="lb_Title" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="lb_Timestep" min="-2" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
+                              <EmptySpace type="unrelated" max="-2" attributes="0"/>
                               <Component id="lb_time" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
@@ -211,7 +211,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="lb_Timestep">
       <Properties>
-        <Property name="text" type="java.lang.String" value="TimeStep:"/>
+        <Property name="text" type="java.lang.String" value="Time Step:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lb_time">
@@ -362,6 +362,9 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txt_token_byte">
+      <Properties>
+        <Property name="editable" type="boolean" value="false"/>
+      </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="lb_mod">
       <Properties>
