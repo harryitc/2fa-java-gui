@@ -34,9 +34,4 @@
         <maven.compiler.target>22</maven.compiler.target>
         <exec.mainClass>com.mycompany.fa.App</exec.mainClass>
     </properties>
-    <!--    <dependency>
-        <groupId>org.apache.httpcomponents</groupId>
-        <artifactId>httpclient</artifactId>
-        <version>4.1.1</version>
-    </dependency>-->
 </project>
